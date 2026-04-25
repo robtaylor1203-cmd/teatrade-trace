@@ -74,9 +74,9 @@ begin
       'total_co2', v_lot.total_co2
     );
     v_hash := '0x' || encode(
-      digest(
-        '0x0000000000000000000000000000000000000000000000000000000000000000' ||
-        v_payload::text || now()::text,
+      extensions.digest(
+        ('0x0000000000000000000000000000000000000000000000000000000000000000' ||
+         v_payload::text || now()::text)::bytea,
         'sha256'
       ),
       'hex'
