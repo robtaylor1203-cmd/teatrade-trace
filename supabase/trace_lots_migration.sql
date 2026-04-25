@@ -15,10 +15,16 @@
 -- Idempotent: safe to run multiple times.
 -- =====================================================================
 
+-- ---------- 0. Required extensions ------------------------------------
+create extension if not exists pgcrypto;     -- for gen_random_uuid()
+
 -- ---------- 1. trace_lots ---------------------------------------------
+-- Note: importer_id is FK'd to auth.users(id) — same identity surface
+-- already used by trace_batches RLS. (trace_importers is a profile
+-- table; the auth.uid() is the source of truth.)
 create table if not exists public.trace_lots (
   id              text primary key,                -- e.g. LOT-FXT-260425-A1B2
-  importer_id     uuid not null references public.trace_importers(id) on delete cascade,
+  importer_id     uuid not null references auth.users(id) on delete cascade,
   estate_id       text,
   estate_name     text,
   status          text not null default 'open'
@@ -37,7 +43,7 @@ create index if not exists trace_lots_status_idx   on public.trace_lots(status);
 create table if not exists public.trace_lot_events (
   event_id        uuid primary key default gen_random_uuid(),
   lot_id          text not null references public.trace_lots(id) on delete cascade,
-  importer_id     uuid not null references public.trace_importers(id) on delete cascade,
+  importer_id     uuid not null references auth.users(id) on delete cascade,
   block_height    int  not null,                   -- 1, 2, 3, ...
   type            text not null
                   check (type in (
@@ -182,3 +188,15 @@ comment on table public.trace_lots is
   'Per-lot ledger header. The chain itself lives in trace_lot_events.';
 comment on table public.trace_lot_events is
   'Append-only hash-chained lifecycle events. NEVER update or delete rows.';
+
+-- ---------- 7. Final sanity check -------------------------------------
+-- If any of the above silently failed, this raises a visible NOTICE.
+do $$
+begin
+  if to_regclass('public.trace_lots')        is null then raise exception 'trace_lots not created'; end if;
+  if to_regclass('public.trace_lot_events')  is null then raise exception 'trace_lot_events not created'; end if;
+  if to_regprocedure('public.trace_lot_append(text,text,jsonb,text,text)') is null
+    then raise exception 'trace_lot_append() RPC not created';
+  end if;
+  raise notice '✓ trace_lots migration complete';
+end$$;
