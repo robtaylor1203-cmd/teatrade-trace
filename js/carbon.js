@@ -92,4 +92,203 @@
       '<td>' + intensity + '<small style="color:var(--muted);"> /t</small></td>' +
     '</tr>';
   }).join('');
+
+  /* ========================================================================
+     Generate Audit Pack — 3-step wizard (date range → scope → launch report)
+     ======================================================================== */
+  var auditBtn = document.getElementById('generateAuditBtn');
+  if (auditBtn) auditBtn.addEventListener('click', openAuditWizard);
+
+  function openAuditWizard() {
+    /* defaults: previous full quarter */
+    var today = new Date();
+    var fromDefault = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+    var toDefault = today;
+    function fmtISO(d) { return d.toISOString().slice(0, 10); }
+
+    var SCOPES = [
+      { key: 'origin',         label: 'Origin & cultivation',   sub: 'Estate primary data, factory energy' },
+      { key: 'manufacture',    label: 'Manufacture',            sub: 'Withering, rolling, sorting, drying' },
+      { key: 'bulk-pack',      label: 'Bulk packaging',         sub: 'Sacks, chests, IBCs at origin' },
+      { key: 'outbound',       label: 'Outbound (origin port)', sub: 'Inland trucking + port handling' },
+      { key: 'sea',            label: 'Sea freight',            sub: 'IMO MEPC.337(76) · container ship' },
+      { key: 'customs',        label: 'Customs clearance',      sub: 'HMRC entry + bonded handling' },
+      { key: 'blend',          label: 'Blending',               sub: 'Recipe assembly, multi-lot batches' },
+      { key: 'consumer-pack',  label: 'Consumer packing',       sub: 'SKU pack format + materials' },
+      { key: 'dispatched',     label: 'Retail distribution',    sub: 'DC → store last-mile road' },
+      { key: 'retail-inbound', label: 'Retail inbound',         sub: 'GRN at retailer DC' },
+      { key: 'on-shelf',       label: 'On-shelf scans',         sub: 'Store associate confirmations' },
+      { key: 'delivered',      label: 'Delivered to consumer',  sub: 'POS / fulfilment closure' }
+    ];
+
+    var modal = document.createElement('div');
+    modal.className = 'audit-wizard';
+    modal.innerHTML =
+      '<div class="audit-wizard__backdrop"></div>' +
+      '<div class="audit-wizard__sheet" role="dialog" aria-modal="true" aria-labelledby="auditWizTitle">' +
+        '<div class="audit-wizard__head">' +
+          '<div>' +
+            '<p class="eyebrow">Audit pack · GHG-Protocol Scope 3</p>' +
+            '<h3 id="auditWizTitle" class="audit-wizard__title">Generate audit</h3>' +
+            '<p class="audit-wizard__sub" id="auditWizSub">Step 1 of 3 — Reporting period</p>' +
+          '</div>' +
+          '<button class="audit-wizard__close" aria-label="Close" type="button">×</button>' +
+        '</div>' +
+        '<div class="audit-wizard__steps" aria-hidden="true">' +
+          '<span class="audit-wizard__step is-active" data-step="1">1 · Period</span>' +
+          '<span class="audit-wizard__step" data-step="2">2 · Scope</span>' +
+          '<span class="audit-wizard__step" data-step="3">3 · Generate</span>' +
+        '</div>' +
+        '<div class="audit-wizard__body">' +
+
+          /* STEP 1 */
+          '<section class="audit-wizard__pane is-active" data-pane="1">' +
+            '<div class="audit-wizard__field-row">' +
+              '<label class="audit-wizard__field">' +
+                '<span>From</span>' +
+                '<input type="date" id="auditFrom" value="' + fmtISO(fromDefault) + '" />' +
+              '</label>' +
+              '<label class="audit-wizard__field">' +
+                '<span>To</span>' +
+                '<input type="date" id="auditTo" value="' + fmtISO(toDefault) + '" />' +
+              '</label>' +
+            '</div>' +
+            '<div class="audit-wizard__presets">' +
+              '<button type="button" class="pill" data-preset="qtr">Last quarter</button>' +
+              '<button type="button" class="pill" data-preset="ytd">YTD</button>' +
+              '<button type="button" class="pill" data-preset="12m">Last 12 months</button>' +
+              '<button type="button" class="pill" data-preset="2025">FY 2025</button>' +
+            '</div>' +
+          '</section>' +
+
+          /* STEP 2 */
+          '<section class="audit-wizard__pane" data-pane="2">' +
+            '<div class="audit-wizard__scope-head">' +
+              '<p class="audit-wizard__hint">Choose which supply-chain stages to include. Each one maps to events in your TTLedger.</p>' +
+              '<label class="audit-wizard__all">' +
+                '<input type="checkbox" id="auditAll" checked /> <span>Select all</span>' +
+              '</label>' +
+            '</div>' +
+            '<ul class="audit-wizard__scopes" id="auditScopes">' +
+              SCOPES.map(function (s) {
+                return '<li><label class="audit-wizard__scope">' +
+                  '<input type="checkbox" name="scope" value="' + s.key + '" checked />' +
+                  '<span class="audit-wizard__scope-main">' +
+                    '<strong>' + s.label + '</strong>' +
+                    '<small>' + s.sub + '</small>' +
+                  '</span>' +
+                '</label></li>';
+              }).join('') +
+            '</ul>' +
+          '</section>' +
+
+          /* STEP 3 */
+          '<section class="audit-wizard__pane" data-pane="3">' +
+            '<div class="audit-wizard__summary">' +
+              '<div><span>Period</span><strong id="sumPeriod">—</strong></div>' +
+              '<div><span>Stages</span><strong id="sumStages">—</strong></div>' +
+              '<div><span>Standard</span><strong>GHG-Protocol Scope 3 · ISAE 3000</strong></div>' +
+              '<div><span>Issuer</span><strong>TeaTrade Trace · Importer Account</strong></div>' +
+            '</div>' +
+            '<p class="audit-wizard__hint">Your audit pack will open in a new tab — fully branded, hash-anchored, and ready to share with your assurance provider.</p>' +
+          '</section>' +
+        '</div>' +
+
+        '<div class="audit-wizard__foot">' +
+          '<button type="button" class="btn btn--ghost" id="auditBack" disabled>Back</button>' +
+          '<button type="button" class="btn btn--primary" id="auditNext">Next →</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    var step = 1;
+    var subEl = modal.querySelector('#auditWizSub');
+    var stepEls = modal.querySelectorAll('.audit-wizard__step');
+    var paneEls = modal.querySelectorAll('.audit-wizard__pane');
+    var backBtn = modal.querySelector('#auditBack');
+    var nextBtn = modal.querySelector('#auditNext');
+
+    function close() {
+      document.body.style.overflow = '';
+      modal.remove();
+    }
+    modal.querySelector('.audit-wizard__close').addEventListener('click', close);
+    modal.querySelector('.audit-wizard__backdrop').addEventListener('click', close);
+
+    function show(n) {
+      step = n;
+      stepEls.forEach(function (e) { e.classList.toggle('is-active', +e.getAttribute('data-step') === n); });
+      paneEls.forEach(function (p) { p.classList.toggle('is-active', +p.getAttribute('data-pane') === n); });
+      subEl.textContent = 'Step ' + n + ' of 3 — ' + (n === 1 ? 'Reporting period' : n === 2 ? 'Scope selection' : 'Review & generate');
+      backBtn.disabled = n === 1;
+      nextBtn.textContent = n === 3 ? 'Generate audit →' : 'Next →';
+      if (n === 3) populateSummary();
+    }
+
+    /* Date presets */
+    modal.querySelectorAll('[data-preset]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var p = b.getAttribute('data-preset');
+        var to = new Date();
+        var from = new Date();
+        if (p === 'qtr') from = new Date(to.getFullYear(), to.getMonth() - 3, 1);
+        else if (p === 'ytd') from = new Date(to.getFullYear(), 0, 1);
+        else if (p === '12m') from = new Date(to.getFullYear() - 1, to.getMonth(), to.getDate());
+        else if (p === '2025') { from = new Date(2025, 0, 1); to = new Date(2025, 11, 31); }
+        modal.querySelector('#auditFrom').value = fmtISO(from);
+        modal.querySelector('#auditTo').value = fmtISO(to);
+      });
+    });
+
+    /* Select all */
+    var allCb = modal.querySelector('#auditAll');
+    var scopeCbs = modal.querySelectorAll('input[name="scope"]');
+    allCb.addEventListener('change', function () {
+      scopeCbs.forEach(function (c) { c.checked = allCb.checked; });
+    });
+    scopeCbs.forEach(function (c) {
+      c.addEventListener('change', function () {
+        var allChecked = Array.prototype.every.call(scopeCbs, function (x) { return x.checked; });
+        allCb.checked = allChecked;
+      });
+    });
+
+    function getSelectedScopes() {
+      return Array.prototype.filter.call(scopeCbs, function (c) { return c.checked; })
+        .map(function (c) { return c.value; });
+    }
+
+    function populateSummary() {
+      var f = modal.querySelector('#auditFrom').value;
+      var t = modal.querySelector('#auditTo').value;
+      var scopes = getSelectedScopes();
+      modal.querySelector('#sumPeriod').textContent = f + ' → ' + t;
+      modal.querySelector('#sumStages').textContent = scopes.length + ' stage' + (scopes.length === 1 ? '' : 's') +
+        (scopes.length === SCOPES.length ? ' (all)' : '');
+    }
+
+    backBtn.addEventListener('click', function () { if (step > 1) show(step - 1); });
+    nextBtn.addEventListener('click', function () {
+      if (step === 1) {
+        var f = modal.querySelector('#auditFrom').value;
+        var t = modal.querySelector('#auditTo').value;
+        if (!f || !t) { alert('Please choose both a start and end date.'); return; }
+        if (new Date(f) > new Date(t)) { alert('Start date must be before end date.'); return; }
+        show(2);
+      } else if (step === 2) {
+        if (getSelectedScopes().length === 0) { alert('Select at least one stage.'); return; }
+        show(3);
+      } else {
+        var params = new URLSearchParams({
+          from: modal.querySelector('#auditFrom').value,
+          to:   modal.querySelector('#auditTo').value,
+          scope: getSelectedScopes().join(',')
+        });
+        close();
+        window.open('./audit.html?' + params.toString(), '_blank', 'noopener');
+      }
+    });
+  }
 })();
