@@ -1205,6 +1205,49 @@ html[data-theme="dark"] .world-map .leaflet-control-attribution a { color: #cbd5
 }
 .world-map .leaflet-tooltip-top:before { border-top-color: rgba(32,33,36,.92); }
 
+/* Map popup (shipment summary + view-details pill) */
+.world-map .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,.25);
+  padding: 0;
+}
+.world-map .leaflet-popup-content {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  color: var(--text);
+  line-height: 1.45;
+}
+.world-map .leaflet-popup-tip { background: var(--panel); border: 1px solid var(--border); }
+.tt-map-popup__head {
+  display: flex; flex-direction: column; gap: 2px;
+  padding-bottom: 10px; margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.tt-map-popup__head strong { font-size: 14px; font-weight: 600; }
+.tt-map-popup__sub { font-size: 12px; color: var(--muted); }
+.tt-map-popup__list { display: flex; flex-direction: column; gap: 12px; }
+.tt-map-popup__row { display: flex; flex-direction: column; gap: 6px; }
+.tt-map-popup__row + .tt-map-popup__row { border-top: 1px dashed var(--border); padding-top: 10px; }
+.tt-map-popup__row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tt-map-popup__row-meta { font-size: 12px; color: var(--muted); }
+.tt-map-popup__btn {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 2px;
+  padding: 5px 12px;
+  font: 500 12px var(--font-sans);
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .2s var(--ease), transform .2s var(--ease);
+}
+.tt-map-popup__btn:hover { background: #1765c8; transform: translateY(-1px); }
+
 .map-legend {
   position: absolute;
   bottom: 12px; left: 12px;
@@ -1287,7 +1330,7 @@ html[data-theme="dark"] .risk-chip--high   { color: #f28b82; }
 }
 .drawer-overlay.is-open { opacity: 1; pointer-events: auto; }
 .drawer {
-  position: fixed; top: 0; right: 0; bottom: 0;
+  position: fixed; top: 36px; right: 0; bottom: 0;
   width: min(640px, 100%);
   background: var(--panel);
   border-left: 1px solid var(--border);

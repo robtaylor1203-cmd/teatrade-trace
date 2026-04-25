@@ -110,8 +110,13 @@ window.TTMap = (function () {
     (data.pins || []).forEach(function (p) {
       if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
       var marker = L.marker([p.lat, p.lng], { icon: pinIcon(p.kind), title: p.label });
-      if (p.label) marker.bindTooltip(p.label, { direction: 'top', offset: [0, -8] });
-      if (p.href) marker.on('click', function () { window.location.href = p.href; });
+      if (p.popupHtml) {
+        marker.bindPopup(p.popupHtml, { className: 'tt-map-popup', maxWidth: 320, minWidth: 240, closeButton: true });
+        if (p.label) marker.bindTooltip(p.label, { direction: 'top', offset: [0, -8] });
+      } else if (p.label) {
+        marker.bindTooltip(p.label, { direction: 'top', offset: [0, -8] });
+      }
+      if (!p.popupHtml && p.href) marker.on('click', function () { window.location.href = p.href; });
       marker.addTo(map);
       bounds.push([p.lat, p.lng]);
     });

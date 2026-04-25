@@ -16,15 +16,74 @@
   /* ---------------------------- Map ----------------------------- */
   var mapHost = document.getElementById('shipmentMap');
   if (mapHost && window.TTMap) {
+    /* Group active batches (transit + port) by estate so each origin pin
+       shows a popup of the shipments coming from there. Estates without
+       active batches still render a tooltip-only pin. */
+    var liveBatches = D.batches.filter(function (b) {
+      return b.status === 'transit' || b.status === 'port';
+    });
+    var liveByEstate = {};
+    liveBatches.forEach(function (b) {
+      (liveByEstate[b.estate] = liveByEstate[b.estate] || []).push(b);
+    });
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (ch) {
+        return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
+      });
+    }
+    function popupForEstate(e, batches) {
+      var rows = batches.map(function (b) {
+        var c = D.carrierById(b.carrier);
+        var statusLabel = b.status === 'transit' ? 'In Transit' : 'At Port';
+        return '' +
+          '<div class="tt-map-popup__row">' +
+            '<div class="tt-map-popup__row-head">' +
+              '<code class="batch-id">' + escapeHtml(b.id) + '</code>' +
+              '<span class="status status--' + b.status + '"><span class="status__dot"></span>' + statusLabel + '</span>' +
+            '</div>' +
+            '<div class="tt-map-popup__row-meta">' +
+              escapeHtml(c.name) + ' · ' + escapeHtml(b.vessel) +
+              ' · ETA ' + escapeHtml(TTChrome.fmtDate(b.eta)) +
+            '</div>' +
+            '<button type="button" class="tt-map-popup__btn" data-open-shipment="' + escapeHtml(b.id) + '">' +
+              'View details →' +
+            '</button>' +
+          '</div>';
+      }).join('');
+      return '' +
+        '<div class="tt-map-popup__head">' +
+          '<strong>' + escapeHtml(e.name) + '</strong>' +
+          '<span class="tt-map-popup__sub">' + escapeHtml(e.region + ', ' + e.country) + '</span>' +
+        '</div>' +
+        '<div class="tt-map-popup__list">' + rows + '</div>';
+    }
+
     var pins = D.estates.map(function (e) {
-      return { lng: e.lng, lat: e.lat, label: e.name + ' · ' + e.country, href: './estates.html#' + e.id, kind: 'origin' };
+      var pin = { lng: e.lng, lat: e.lat, label: e.name + ' · ' + e.country, kind: 'origin' };
+      var live = liveByEstate[e.id];
+      if (live && live.length) {
+        pin.popupHtml = popupForEstate(e, live);
+      } else {
+        pin.href = './estates.html#' + e.id;
+      }
+      return pin;
     });
     pins.push({ lng: D.destination.lng, lat: D.destination.lat, label: D.destination.name, kind: 'dest' });
-    var routes = D.batches.filter(function (b) { return b.status === 'transit' || b.status === 'port'; }).map(function (b) {
+
+    var routes = liveBatches.map(function (b) {
       var e = D.estateById(b.estate);
       return { from: { lng: e.lng, lat: e.lat }, to: D.destination };
     });
     TTMap.render(mapHost, { pins: pins, routes: routes }, 'trace');
+
+    /* Delegate clicks from popup buttons → existing drawer */
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest && ev.target.closest('[data-open-shipment]');
+      if (!btn) return;
+      ev.preventDefault();
+      openDrawer(btn.getAttribute('data-open-shipment'));
+    });
   }
 
   /* ---------------------------- List ---------------------------- */
