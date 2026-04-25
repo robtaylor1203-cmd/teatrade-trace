@@ -43,8 +43,12 @@
     var liveChip = b.isLive
       ? '<span class="chip chip--verified" style="margin-right:6px;">● Live</span>'
       : '';
+    var nominatePill = b.isLive
+      ? '<button class="card-pill card-pill--nominate" type="button" data-nominate-id="' + escapeHtml(b.id) + '" data-nominate-label="' + escapeHtml(b.name) + '" title="Nominate next custodian (e.g. retailer)">Nominate</button>'
+      : '';
     return '<article class="estate-card" id="' + escapeHtml(b.id) + '">' +
       '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + escapeHtml(b.id) + '" data-qr-label="' + escapeHtml(b.name) + '" title="Generate Tea Passport QR">QR</button>' +
+      nominatePill +
       '<span class="estate-card__flag">' + escapeHtml(b.sku) + '</span>' +
       '<header>' +
         '<h3 class="estate-card__title">' + liveChip + escapeHtml(b.name) + '</h3>' +
@@ -124,15 +128,23 @@
       });
 
       var lot = await TTLedger.create({ estateId: 'BLEND', estateName: name });
+      /* Genesis: the blender's "origin" — they took custody of the
+         component lots and started a new derived lot. */
       await TTLedger.append(lot.id, 'origin', {
         kind: 'blend', sku: sku, weightT: weightT, parents: parentSet
       });
-      await TTLedger.append(lot.id, 'manufacture', {
-        facility: 'Production line', sku: sku, weightT: weightT
+      /* Blend stage: the recipe is mixed into the master batch. */
+      await TTLedger.append(lot.id, 'blend', {
+        recipe: name, sku: sku, blender: 'Production line',
+        componentLots: parentSet.length, batchKg: Math.round(weightT * 1000)
       });
-      await TTLedger.append(lot.id, 'bulk-pack', {
-        format: format, material: material, weightT: weightT
+      /* Consumer-pack stage: the retail SKU is born. The QR that goes
+         on the pack is generated against THIS lot id from this point. */
+      await TTLedger.append(lot.id, 'consumer-pack', {
+        sku: sku, format: format, formatLabel: format, material: material,
+        materialLabel: material, weightT: weightT
       });
+      /* Mint the public Tea Passport. */
       await TTLedger.append(lot.id, 'minted', {
         sku: sku, format: format, material: material
       });

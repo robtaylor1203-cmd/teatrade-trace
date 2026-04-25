@@ -30,7 +30,19 @@
   'use strict';
 
   /* ---------- ordered lifecycle stages ---------- */
-  var STAGES = ['origin','manufacture','bulk-pack','outbound','minted','dispatched','delivered'];
+  /* Phases (for the public passport):
+       estate  : origin
+       prod    : manufacture, bulk-pack, blend, consumer-pack, minted
+       ship    : outbound, customs
+       retail  : dispatched, retail-inbound, on-shelf, delivered
+     `nominate` and `accept` are custody-handoff events; they are NOT
+     part of the ordered nextStage() walk — they can fire at any point
+     between two custodians and don't advance the production stage. */
+  var STAGES = ['origin','manufacture','bulk-pack','outbound','customs',
+                'blend','consumer-pack','minted',
+                'dispatched','retail-inbound','on-shelf','delivered'];
+  var HANDOFF_TYPES = ['nominate','accept','void'];
+  function isKnownType(t) { return STAGES.indexOf(t) !== -1 || HANDOFF_TYPES.indexOf(t) !== -1; }
 
   /* ---------- storage layer ---------- */
   var KEY = 'ttLedger.v1';
@@ -190,7 +202,7 @@
   }
 
   async function append(lotId, type, payload) {
-    if (STAGES.indexOf(type) === -1) {
+    if (!isKnownType(type)) {
       throw new Error('Unknown stage: ' + type);
     }
     var lot = store.lots[lotId];
@@ -220,7 +232,9 @@
     store.events[lotId] = store.events[lotId] || [];
     store.events[lotId].push(evt);
     if (lot.stagesDone.indexOf(type) === -1) lot.stagesDone.push(type);
-    if (type === 'delivered') lot.status = 'closed';
+    if (type === 'delivered')      lot.status = 'closed';
+    else if (type === 'on-shelf')  lot.status = 'delivered';
+    else if (type === 'dispatched' && lot.status === 'open') lot.status = 'dispatched';
     saveStore(store);
 
     /* Server-side append via RPC — atomic, computes block_height there.
@@ -263,6 +277,148 @@
     return 'LOT-' + tag + '-' + ymd + '-' + shortId(4).toUpperCase();
   }
 
+  /* ---------- custody handoff ---------- */
+  /* Two-phase handoff:
+       1. Current owner calls nominate(lotId, email, note). Writes a
+          `nominate` event to the chain AND inserts a pending row in
+          trace_nominations. The chain hash anchors the handoff intent.
+       2. The nominee (matched by email or uid) calls accept(lotId).
+          Writes an `accept` event and flips current_owner server-side
+          via the trace_accept RPC.
+     Local-only fallback (no Supabase): we still write the chain events
+     and stash pending nominations in localStorage so the demo flow
+     works end-to-end without a backend. */
+  var INBOX_KEY = 'ttLedger.inbox.v1';
+  function loadInbox() {
+    try { return JSON.parse(localStorage.getItem(INBOX_KEY) || '{}'); } catch (_) { return {}; }
+  }
+  function saveInbox(o) { try { localStorage.setItem(INBOX_KEY, JSON.stringify(o)); } catch (_) {} }
+  function currentEmail() {
+    var T = window.TTSupabase;
+    var sUser = T && T.session && T.session.user;
+    if (sUser && sUser.email) return String(sUser.email).toLowerCase();
+    var dev = localStorage.getItem('ttLedger.devEmail');
+    if (!dev) {
+      dev = 'demo+' + shortId(6) + '@teatrade.local';
+      localStorage.setItem('ttLedger.devEmail', dev);
+    }
+    return dev;
+  }
+
+  async function nominate(lotId, email, note) {
+    email = String(email || '').trim().toLowerCase();
+    if (!email) throw new Error('Recipient email required.');
+    var lot = store.lots[lotId];
+    if (!lot) throw new Error('Lot not found: ' + lotId);
+
+    /* 1. write the chain event (server-side via append RPC if authed) */
+    var evt = await append(lotId, 'nominate', {
+      toEmail:   email,
+      fromEmail: currentEmail(),
+      note:      note || ''
+    });
+
+    /* 2. server-side nomination row (best-effort) */
+    var sb = getSb();
+    if (sb) {
+      try {
+        var rpc = await sb.rpc('trace_nominate', {
+          p_lot_id: lotId, p_email: email, p_note: note || null
+        });
+        if (rpc.error) console.warn('[TTLedger] nominate rpc:', rpc.error.message);
+      } catch (err) {
+        console.warn('[TTLedger] nominate threw:', err && err.message);
+      }
+    }
+
+    /* 3. localStorage inbox so demo flows work without auth */
+    var inbox = loadInbox();
+    inbox[email] = inbox[email] || [];
+    inbox[email].push({
+      lotId:     lotId,
+      lotName:   lot.estateName || lotId,
+      fromEmail: currentEmail(),
+      note:      note || '',
+      ts:        new Date().toISOString(),
+      hash:      evt.hash
+    });
+    saveInbox(inbox);
+    return evt;
+  }
+
+  async function accept(lotId) {
+    var lot = store.lots[lotId];
+    if (!lot) throw new Error('Lot not found: ' + lotId);
+
+    var prev = head(lotId);
+    var prevHash = prev ? prev.hash : ('0x' + '0'.repeat(64));
+    var ts = new Date().toISOString();
+    var fullPayload = { acceptedBy: currentEmail(), _ts: ts };
+    var preimage = prevHash + '|accept|' + canonical(fullPayload);
+    var hash = '0x' + (await sha256Hex(preimage));
+
+    var sb = getSb();
+    if (sb) {
+      try {
+        var rpc = await sb.rpc('trace_accept', {
+          p_lot_id: lotId, p_prev_hash: prevHash, p_hash: hash, p_payload: fullPayload
+        });
+        if (rpc.error) console.warn('[TTLedger] accept rpc:', rpc.error.message);
+      } catch (err) {
+        console.warn('[TTLedger] accept threw:', err && err.message);
+      }
+    }
+
+    /* Mirror locally so the demo path is symmetric. */
+    var evt = {
+      eventId:     shortId(12),
+      lotId:       lotId,
+      type:        'accept',
+      ts:          ts,
+      payload:     fullPayload,
+      prevHash:    prevHash,
+      hash:        hash,
+      blockHeight: ((store.events[lotId] || []).length) + 1
+    };
+    store.events[lotId] = store.events[lotId] || [];
+    store.events[lotId].push(evt);
+    if (lot.stagesDone.indexOf('accept') === -1) lot.stagesDone.push('accept');
+    saveStore(store);
+
+    var me = currentEmail();
+    var inbox = loadInbox();
+    if (inbox[me]) {
+      inbox[me] = inbox[me].filter(function (n) { return n.lotId !== lotId; });
+      saveInbox(inbox);
+    }
+    return evt;
+  }
+
+  async function pendingInbox() {
+    var sb = getSb();
+    if (sb) {
+      try {
+        var r = await sb.rpc('trace_pending_inbox');
+        if (!r.error && Array.isArray(r.data)) {
+          return r.data.map(function (row) {
+            return {
+              nominationId: row.nomination_id,
+              lotId:        row.lot_id,
+              lotName:      row.estate_name || row.lot_id,
+              fromEmail:    row.from_email,
+              note:         row.note,
+              ts:           row.created_at,
+              headBlock:    row.head_block,
+              headHash:     row.head_hash
+            };
+          });
+        }
+      } catch (_) {}
+    }
+    var inbox = loadInbox();
+    return (inbox[currentEmail()] || []).slice();
+  }
+
   /* ---------- bootstrap ---------- */
   /* If TTSupabase is on the page, wait for its auth bootstrap, then
      hydrate from the server. Otherwise resolve immediately so the
@@ -281,6 +437,7 @@
   /* ---------- expose ---------- */
   window.TTLedger = {
     STAGES:     STAGES,
+    HANDOFF_TYPES: HANDOFF_TYPES,
     ready:      ready,
     list:       list,
     get:        get,
@@ -289,6 +446,10 @@
     nextStage:  nextStage,
     create:     create,
     append:     append,
+    nominate:   nominate,
+    accept:     accept,
+    pendingInbox: pendingInbox,
+    currentEmail: currentEmail,
     mintLotId:  mintLotId,
     /* utilities exposed for other modules */
     sha256Hex:  sha256Hex,

@@ -167,4 +167,77 @@
   } else {
     counters.forEach(animateCounter);
   }
+
+  /* -------------------------------------------------------- Pending Adoptions inbox */
+  var inboxCard  = document.getElementById('adoptInboxCard');
+  var inboxList  = document.getElementById('adoptInboxList');
+  var inboxCount = document.getElementById('adoptInboxCount');
+
+  function fmtAgo(iso) {
+    if (!iso) return '';
+    var ms = Date.now() - new Date(iso).getTime();
+    var m = Math.round(ms / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    var h = Math.round(m / 60);
+    if (h < 24) return h + 'h ago';
+    return Math.round(h / 24) + 'd ago';
+  }
+
+  function renderInbox(items) {
+    if (!inboxCard) return;
+    if (!items || !items.length) { inboxCard.hidden = true; return; }
+    inboxCard.hidden = false;
+    inboxCount.textContent = items.length;
+    inboxList.innerHTML = items.map(function (n) {
+      var hash = n.headHash ? String(n.headHash).slice(0, 12) + '…' : '';
+      return '<li class="adopt-inbox__row" data-lot="' + n.lotId + '">' +
+        '<div class="adopt-inbox__main">' +
+          '<strong class="adopt-inbox__name">' + (n.lotName || n.lotId) + '</strong>' +
+          '<code class="adopt-inbox__lot">' + n.lotId + '</code>' +
+          (n.note ? '<p class="adopt-inbox__note">' + String(n.note).replace(/[<>]/g,'') + '</p>' : '') +
+          '<p class="adopt-inbox__meta">From ' + (n.fromEmail || 'unknown') +
+            ' · ' + fmtAgo(n.ts) + (hash ? ' · head <code>' + hash + '</code>' : '') + '</p>' +
+        '</div>' +
+        '<div class="adopt-inbox__actions">' +
+          '<a class="btn btn--ghost btn--sm" href="./passport.html?id=' + encodeURIComponent(n.lotId) + '" target="_blank" rel="noopener">View</a>' +
+          '<button class="btn btn--primary btn--sm" type="button" data-accept="' + n.lotId + '">Accept custody</button>' +
+        '</div>' +
+      '</li>';
+    }).join('');
+  }
+
+  async function refreshInbox() {
+    if (!window.TTLedger) return;
+    try { await TTLedger.ready; } catch (_) {}
+    try {
+      var items = await TTLedger.pendingInbox();
+      renderInbox(items);
+    } catch (err) {
+      console.warn('[dashboard] inbox refresh failed', err);
+    }
+  }
+
+  if (inboxList) {
+    inboxList.addEventListener('click', async function (e) {
+      var btn = e.target.closest('[data-accept]');
+      if (!btn) return;
+      var lotId = btn.getAttribute('data-accept');
+      btn.disabled = true; btn.textContent = 'Accepting…';
+      try {
+        await TTLedger.accept(lotId);
+        btn.closest('.adopt-inbox__row').remove();
+        var remaining = inboxList.querySelectorAll('.adopt-inbox__row').length;
+        inboxCount.textContent = remaining;
+        if (!remaining) inboxCard.hidden = true;
+      } catch (err) {
+        console.error('[dashboard] accept failed', err);
+        btn.disabled = false;
+        btn.textContent = 'Try again';
+        alert('Could not accept: ' + (err && err.message || 'unknown'));
+      }
+    });
+  }
+
+  refreshInbox();
 })();

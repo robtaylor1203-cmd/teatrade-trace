@@ -85,7 +85,9 @@
     blend:   svgIcon('<path d="M5 4h14l-5 8v6l-4 2v-8z"/><path d="M8 4c1 2 3 2 4 0M12 4c1 2 3 2 4 0"/>'),
     teabag:  svgIcon('<path d="M9 3h6v3l3 4v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9l3-4z"/><path d="M9 13h6M9 17h6"/>'),
     dc:      svgIcon('<path d="M3 21V9l9-5 9 5v12z"/><path d="M9 21v-7h6v7"/><path d="M3 13h18"/>'),
-    shelf:   svgIcon('<path d="M3 4h18v16H3z"/><path d="M3 10h18M3 16h18"/><path d="M7 6v2M11 6v2M16 12v2M8 18v-2"/>')
+    shelf:   svgIcon('<path d="M3 4h18v16H3z"/><path d="M3 10h18M3 16h18"/><path d="M7 6v2M11 6v2M16 12v2M8 18v-2"/>'),
+    handoff: svgIcon('<path d="M3 12h7l2-2 2 2h7"/><path d="M16 8l3 4-3 4"/><path d="M8 16l-3-4 3-4"/>'),
+    accepted: svgIcon('<path d="M5 13l4 4L19 7"/><circle cx="12" cy="12" r="10"/>')
   };
   var STAGE_LABELS = {
     'origin':       { icon: ICONS.leaf,    phase: 'estate', phaseLabel: 'Estate',     title: 'Plucked at the estate',     blurb: 'Two leaves and a bud, hand-picked at origin.' },
@@ -100,6 +102,8 @@
     'retail-inbound':{ icon: ICONS.dc,     phase: 'retail', phaseLabel: 'Retail',     title: 'Received at retail DC',     blurb: 'Booked in at the retailer\u2019s distribution centre.' },
     'on-shelf':     { icon: ICONS.shelf,   phase: 'retail', phaseLabel: 'Retail',     title: 'On shelf',                  blurb: 'Scanned onto the shop floor, ready for sale.' },
     'delivered':    { icon: ICONS.cup,     phase: 'retail', phaseLabel: 'Retail',     title: 'Sold to the consumer',      blurb: 'Final scan at point of sale \u2014 journey complete.' },
+    'nominate':     { icon: ICONS.handoff, phase: 'ship',   phaseLabel: 'Custody',    title: 'Next custodian nominated',   blurb: 'Current custodian has handed the lot to the next party in the chain.' },
+    'accept':       { icon: ICONS.accepted,phase: 'ship',   phaseLabel: 'Custody',    title: 'Custody accepted',           blurb: 'New custodian has adopted the lot and signed the chain.' },
     'void':         { icon: ICONS.ban,     phase: 'estate', phaseLabel: 'Voided',     title: 'Lot voided',                 blurb: 'This lot was withdrawn from circulation.' }
   };
 
@@ -279,6 +283,8 @@
           { code:'iso-22000', id:'FSMS-260118' }
         ] } },
       { type:'dispatched',  ts: plus(39,3), payload:{ carrier:'TeaTrade Logistics', destination:'Selfridges DC · Park Royal', tracking:'TT-260522-A19F', cases: 240 } },
+      { type:'nominate',    ts: plus(39,4), payload:{ fromEmail:'ops@northern-tea.co.uk', toEmail:'inbound@selfridges.co.uk', note:'PO #SF-2026-9912 — please book in by Tuesday.' } },
+      { type:'accept',      ts: plus(40,1), payload:{ acceptedBy:'inbound@selfridges.co.uk' } },
       { type:'retail-inbound', ts: plus(40,2), payload:{ retailer:'Selfridges', site:'Park Royal RDC', cases:240, grn:'GRN-260524-7711' } },
       { type:'on-shelf',    ts: plus(41,5), payload:{ retailer:'Selfridges', store:'London · Oxford Street', aisle:'Food Hall · Tea & Coffee', scannedBy:'Associate #4421' } }
     ];
@@ -457,8 +463,12 @@
       row('Scanned by',  p.scannedBy);
     } else if (type === 'minted') {
       if (p.footprintTotal != null) row('Footprint', p.footprintTotal + ' tCO₂e');
-      row('DEFRA factors', p.defraVersion);
-    }
+      row('DEFRA factors', p.defraVersion);    } else if (type === 'nominate') {
+      row('From',   p.fromEmail);
+      row('To',     p.toEmail);
+      if (p.note)  row('Note',   p.note);
+    } else if (type === 'accept') {
+      row('Accepted by', p.acceptedBy);    }
     return out;
   }
 

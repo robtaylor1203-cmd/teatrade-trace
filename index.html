@@ -177,6 +177,20 @@
           <li><span>Node region</span><code>eu-west-2</code></li>
         </ul>
       </article>
+
+      <article class="bento-card bento-card--inbox" id="adoptInboxCard" hidden>
+        <header class="bento-card__header">
+          <div>
+            <h3 class="bento-card__title">Pending Adoptions</h3>
+            <p class="bento-card__meta">Lots nominated to your account · Accept to take custody</p>
+          </div>
+          <span class="chip chip--verified" id="adoptInboxCount">0</span>
+        </header>
+        <ul class="adopt-inbox" id="adoptInboxList"></ul>
+        <footer class="bento-card__footer">
+          <span class="muted-text">Acceptance writes a hash-anchored <code>accept</code> event and transfers custody on-chain.</span>
+        </footer>
+      </article>
     </section>
   </main>
 
@@ -185,6 +199,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="./js/supabase-client.js"></script>
   <script src="./js/data.js"></script>
+  <script src="./js/ledger.js"></script>
+  <script src="./js/nominate.js" defer></script>
   <script src="./js/chrome.js"></script>
   <script src="./js/dashboard.js" defer></script>
 </body>

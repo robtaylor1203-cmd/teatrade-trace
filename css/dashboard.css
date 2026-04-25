@@ -2083,6 +2083,86 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 html[data-theme="dark"] .card-pill { background: #1a1f29; border-color: #252a34; color: var(--accent-hi, #3b8cff); }
 html[data-theme="dark"] .card-pill:hover { background: rgba(59,140,255,.12); }
 
+/* Nominate-next-custodian pill — sits bottom-LEFT so it never collides
+   with the bottom-right QR pill on lot cards. */
+.estate-card .card-pill--nominate,
+.shipment-card .card-pill--nominate,
+.cert-card .card-pill--nominate {
+  position: absolute; bottom: 12px; left: 12px; right: auto;
+  color: var(--phase-ship, #1a73e8);
+}
+.card-pill--nominate::before {
+  content: '';
+  width: 11px; height: 11px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='M13 6l6 6-6 6'/></svg>") no-repeat center / contain;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='M13 6l6 6-6 6'/></svg>") no-repeat center / contain;
+}
+
+/* =====================================================================
+   Pending Adoptions inbox (dashboard)
+   ===================================================================== */
+.bento-card--inbox { grid-column: span 2; }
+.adopt-inbox { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.adopt-inbox__row {
+  display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+  padding: 14px 16px; background: #fafbfd;
+  border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 10px;
+}
+.adopt-inbox__main { min-width: 0; }
+.adopt-inbox__name { display: block; font-size: 15px; font-weight: 600; color: var(--text); }
+.adopt-inbox__lot {
+  display: inline-block; margin-top: 4px;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 11px; color: var(--accent);
+  background: var(--accent-soft); padding: 1px 6px; border-radius: 4px;
+}
+.adopt-inbox__note { margin: 6px 0 0; font-size: 13px; color: var(--text); line-height: 1.4; }
+.adopt-inbox__meta { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+.adopt-inbox__meta code {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  background: #f1f3f5; padding: 1px 5px; border-radius: 3px; font-size: 11px;
+}
+.adopt-inbox__actions { display: flex; gap: 8px; flex-shrink: 0; }
+.btn--sm { padding: 6px 12px; font-size: 13px; }
+
+/* =====================================================================
+   Nomination modal — used on production & retail card "Nominate" pill
+   ===================================================================== */
+.nominate-modal { position: fixed; inset: 0; z-index: 1300; display: none; align-items: center; justify-content: center; }
+.nominate-modal.is-open { display: flex; }
+.nominate-modal__backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.55); }
+.nominate-modal__sheet {
+  position: relative; background: #fff; border-radius: 16px;
+  padding: 28px 28px 24px; width: 100%; max-width: 460px;
+  box-shadow: 0 24px 60px rgba(15,23,42,.25);
+}
+.nominate-modal__title { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
+.nominate-modal__sub   { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+.nominate-modal__field { display: block; margin-bottom: 14px; font-size: 13px; color: var(--text); }
+.nominate-modal__field input,
+.nominate-modal__field textarea {
+  display: block; width: 100%; margin-top: 6px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 14px; box-sizing: border-box;
+}
+.nominate-modal__field textarea { min-height: 70px; resize: vertical; }
+.nominate-modal__lot {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 12px; color: var(--accent);
+  background: var(--accent-soft); padding: 2px 8px; border-radius: 4px;
+}
+.nominate-modal__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.nominate-modal__error { color: #dc2626; font-size: 13px; margin: 6px 0 0; }
+
+/* Retail card action row (Mark received / Put on shelf / Mark sold) */
+.retail-actions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding-top: 12px; margin-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
 /* =====================================================================
    QR / Tea Passport modal
    ===================================================================== */

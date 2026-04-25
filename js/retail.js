@@ -21,9 +21,27 @@
 
   function statusChip(s) {
     var risk = s === 'delivered' ? 'low' :
+               s === 'on-shelf' ? 'low' :
                s === 'in-distribution' ? 'medium' :
+               s === 'received' ? 'medium' :
                s === 'picking' ? 'medium' : 'high';
     return '<span class="risk-chip risk-chip--' + risk + '">' + escapeHtml(s.replace(/-/g, ' ')) + '</span>';
+  }
+
+  /* Decide which retail-side actions are available for a live lot. */
+  function actionsFor(r) {
+    if (!r.isLive) return '';
+    var done = r.stagesDone || [];
+    var actions = [];
+    if (done.indexOf('retail-inbound') === -1) {
+      actions.push('<button class="btn btn--ghost btn--sm" data-retail-act="receive" data-lot="' + escapeHtml(r.id) + '">Mark received</button>');
+    } else if (done.indexOf('on-shelf') === -1) {
+      actions.push('<button class="btn btn--ghost btn--sm" data-retail-act="shelf" data-lot="' + escapeHtml(r.id) + '">Put on shelf</button>');
+    } else if (done.indexOf('delivered') === -1) {
+      actions.push('<button class="btn btn--primary btn--sm" data-retail-act="sold" data-lot="' + escapeHtml(r.id) + '">Mark sold</button>');
+    }
+    if (!actions.length) return '';
+    return '<div class="retail-actions">' + actions.join('') + '</div>';
   }
 
   function paintKpis() {
@@ -45,8 +63,12 @@
     var liveChip = r.isLive
       ? '<span class="chip chip--verified" style="margin-right:6px;">● Live</span>'
       : '';
+    var nominatePill = r.isLive
+      ? '<button class="card-pill card-pill--nominate" type="button" data-nominate-id="' + escapeHtml(r.id) + '" data-nominate-label="' + escapeHtml(r.retailer + ' · ' + r.sku) + '" title="Nominate next custodian (retailer DC / store)">Nominate</button>'
+      : '';
     return '<article class="estate-card" id="' + escapeHtml(r.id) + '">' +
       '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + escapeHtml(r.id) + '" data-qr-label="' + escapeHtml(r.retailer + ' · ' + r.sku) + '" title="Generate Tea Passport QR">QR</button>' +
+      nominatePill +
       '<span class="estate-card__flag">' + escapeHtml(r.channel) + '</span>' +
       '<header>' +
         '<h3 class="estate-card__title">' + liveChip + escapeHtml(r.retailer) + '</h3>' +
@@ -61,6 +83,7 @@
       '<div class="estate-card__certs" style="flex-wrap:wrap;gap:6px;">' +
         (r.dispatched ? '<span class="muted-text">Dispatched ' + escapeHtml(r.dispatched) + '</span>' : '<span class="muted-text">Awaiting dispatch</span>') +
       '</div>' +
+      actionsFor(r) +
     '</article>';
   }
 
@@ -155,6 +178,7 @@
         dc: dc,
         channel: channel,
         status: 'in-distribution',
+        stagesDone: ['origin','outbound','dispatched','minted'],
         dispatched: today,
         isLive: true
       });
@@ -186,6 +210,8 @@
       var origin = (evs.find(function (e) { return e.type === 'origin'; }) || { payload: {} }).payload;
       var disp   = (evs.find(function (e) { return e.type === 'dispatched'; }) || { payload: {} }).payload;
       var status = l.stagesDone.indexOf('delivered') !== -1 ? 'delivered' :
+                   l.stagesDone.indexOf('on-shelf') !== -1 ? 'on-shelf' :
+                   l.stagesDone.indexOf('retail-inbound') !== -1 ? 'received' :
                    l.stagesDone.indexOf('dispatched') !== -1 ? 'in-distribution' :
                    'picking';
       return {
@@ -197,6 +223,7 @@
         dc: disp.dc || '—',
         channel: origin.channel || '—',
         status: status,
+        stagesDone: l.stagesDone || [],
         dispatched: status !== 'picking' ? (l.createdAt || '').slice(0, 10) : null,
         isLive: true
       };
@@ -204,6 +231,52 @@
     paintKpis();
     renderGrid();
   }
+
+  /* ---------- Retail-side actions: receive / shelf / sold ---------- */
+  document.getElementById('orderGrid').addEventListener('click', async function (e) {
+    var btn = e.target.closest('[data-retail-act]');
+    if (!btn) return;
+    var act = btn.getAttribute('data-retail-act');
+    var lotId = btn.getAttribute('data-lot');
+    var entry = liveOrders.find(function (o) { return o.id === lotId; });
+    if (!entry) return;
+    btn.disabled = true;
+    var origText = btn.textContent;
+    btn.textContent = '…';
+    try {
+      if (act === 'receive') {
+        await TTLedger.append(lotId, 'retail-inbound', {
+          retailer: entry.retailer, site: entry.dc,
+          cases: entry.qtyCases, grn: 'GRN-' + Date.now().toString(36).toUpperCase()
+        });
+        entry.stagesDone.push('retail-inbound');
+        entry.status = 'received';
+      } else if (act === 'shelf') {
+        await TTLedger.append(lotId, 'on-shelf', {
+          retailer: entry.retailer,
+          store: entry.retailer + ' · Store',
+          aisle: 'Tea & Coffee',
+          scannedBy: TTLedger.currentEmail()
+        });
+        entry.stagesDone.push('on-shelf');
+        entry.status = 'on-shelf';
+      } else if (act === 'sold') {
+        await TTLedger.append(lotId, 'delivered', {
+          retailer: entry.retailer,
+          channel: 'POS', soldBy: TTLedger.currentEmail()
+        });
+        entry.stagesDone.push('delivered');
+        entry.status = 'delivered';
+      }
+      paintKpis();
+      renderGrid();
+    } catch (err) {
+      console.error('[retail] action failed', err);
+      btn.textContent = origText;
+      btn.disabled = false;
+      alert('Failed: ' + (err && err.message ? err.message : 'unknown'));
+    }
+  });
 
   /* ---------- Boot ---------- */
   paintKpis();
