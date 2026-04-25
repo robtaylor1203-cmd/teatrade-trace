@@ -70,12 +70,18 @@ window.TTData = (function () {
   }
 
   function carbonBreakdown() {
+    /* Aligned to captured TTLedger stages:
+       origin → manufacture → bulk-pack → outbound → customs →
+       blend → consumer-pack → dispatched → retail-inbound → on-shelf */
     return [
-      { label: 'Sea freight',          pct: 62, t: 255, color: '#1a73e8' },
-      { label: 'Cultivation + factory', pct: 18, t: 74,  color: '#1a73e8' },
-      { label: 'Inland trucking',       pct: 11, t: 45,  color: '#1a73e8' },
-      { label: 'Packaging',             pct: 6,  t: 25,  color: '#1a73e8' },
-      { label: 'Warehousing (UK)',      pct: 3,  t: 13,  color: '#1a73e8' }
+      { label: 'Sea freight (origin → UK port)',     pct: 52, t: 214, color: '#1a73e8' },
+      { label: 'Cultivation (estate origin)',          pct: 14, t: 58,  color: '#2d6a4f' },
+      { label: 'Factory processing (manufacture)',     pct: 9,  t: 37,  color: '#b45309' },
+      { label: 'Blending & consumer packing',          pct: 7,  t: 29,  color: '#b45309' },
+      { label: 'Inland trucking (estate → port)',     pct: 6,  t: 25,  color: '#1a73e8' },
+      { label: 'Retail distribution (last-mile)',      pct: 5,  t: 21,  color: '#7c3aed' },
+      { label: 'Bulk packaging materials',             pct: 4,  t: 16,  color: '#b45309' },
+      { label: 'Warehousing & retail ops',             pct: 3,  t: 12,  color: '#7c3aed' }
     ];
   }
 

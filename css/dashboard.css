@@ -52,6 +52,11 @@ body.trace-page {
 /* =====================================================================
    GLOBAL HEADER  (matches teatrade.co.uk .site-header exactly)
    ===================================================================== */
+/* The chrome wrapper must use display:contents so the sticky header's
+   containing block is the body, not the wrapper div (which is only as
+   tall as the header itself and would scroll away). */
+#tt-chrome-top { display: contents; }
+
 .site-header {
   background-color: #fff;
   border-bottom: 1px solid #ebebeb;
