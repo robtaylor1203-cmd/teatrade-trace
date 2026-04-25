@@ -81,7 +81,7 @@ The Edge Function then picks it up on its next 5-minute drain.
 [`js/anchor-verify.js`](../../../js/anchor-verify.js) is a small browser
 helper that, given a `lot_id`, fetches the anchor record from
 `trace_anchors` and re-derives the on-chain hash via a public RPC. Wire
-it into `passport.html` whenever you're ready — until then it's
+it into `id.html` whenever you're ready — until then it's
 inert.
 
 ## Status / behaviour

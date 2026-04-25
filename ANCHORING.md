@@ -68,7 +68,7 @@ The funded anchor wallet starts with ~5 MATIC (~$3); top-ups are rare.
    immediately after the existing mint event in `lot-wizard.js`. (One
    line, deferred until you're ready.)
 7. **Wire the passport** — add `<script src="./js/anchor-verify.js"></script>`
-   to passport.html and call `TTAnchor.verifyLot(lotId)` to render a
+   to id.html and call `TTAnchor.verifyLot(lotId)` to render a
    "Verified on Polygon" badge. (Also one line, deferred.)
 
 ## Replacing the placeholder topic hash

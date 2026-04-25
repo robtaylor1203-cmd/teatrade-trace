@@ -223,7 +223,7 @@
             ' · ' + fmtAgo(n.ts) + (hash ? ' · head <code>' + hash + '</code>' : '') + '</p>' +
         '</div>' +
         '<div class="adopt-inbox__actions">' +
-          '<a class="btn btn--ghost btn--sm" href="./passport.html?id=' + encodeURIComponent(n.lotId) + '" target="_blank" rel="noopener">View</a>' +
+          '<a class="btn btn--ghost btn--sm" href="./id.html?id=' + encodeURIComponent(n.lotId) + '" target="_blank" rel="noopener">View</a>' +
           '<button class="btn btn--primary btn--sm" type="button" data-accept="' + n.lotId + '">Accept custody</button>' +
         '</div>' +
       '</li>';

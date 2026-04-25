@@ -302,9 +302,9 @@
     /* ---- paint mint state ---- */
     var allEvents = L.events(lot.id);
     var headEvt = allEvents[allEvents.length - 1];
-    /* Tea Passport URL — Cloudflare Pages rewrites /passport/<id> to
-       /passport.html?id=<id>. Same URL goes into the QR code. */
-    var publicUrl = 'https://trace.teatrade.co.uk/passport/' + lot.id;
+     /* Tea ID URL — Cloudflare Pages rewrites /passport/<id> to
+      /id.html?id=<id>. Same URL goes into the QR code. */
+     var publicUrl = 'https://trace.teatrade.co.uk/passport/' + lot.id;
 
     /* Persist the qr_url back to the lot row (best-effort) so future
        loads + the certificates audit log can reference it. */

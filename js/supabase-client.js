@@ -46,13 +46,23 @@
   });
 
   /* --------------------------- HELPERS -------------------------- */
+
   function isPublicPage() {
     return PUBLIC_PAGES.indexOf(location.pathname) !== -1;
   }
 
+  // Only redirect to SSO if explicitly requested (not automatic)
   function redirectToSso() {
     var returnTo = encodeURIComponent(location.href);
     location.replace(SSO_LOGIN_URL + '?returnTo=' + returnTo);
+  }
+
+  // Track last page for post-login redirect
+  function setLastPage() {
+    try { sessionStorage.setItem('tt-trace-lastpage', location.href); } catch (e) {}
+  }
+  function getLastPage() {
+    try { return sessionStorage.getItem('tt-trace-lastpage') || '/index.html'; } catch (e) { return '/index.html'; }
   }
 
   function paintWelcome(companyName) {
@@ -70,6 +80,7 @@
 
   /* --------------------------- BOOTSTRAP ------------------------ */
   var state = { session: null, importer: null };
+
 
   var ready = (async function bootstrap() {
     var sessionRes = await client.auth.getSession();
@@ -90,7 +101,7 @@
         document.documentElement.setAttribute('data-tt-admin', 'true');
         return state;
       }
-      if (!isPublicPage()) redirectToSso();
+      // No auto-redirect. Only show sign-in modal if user requests.
       return state;
     }
 
@@ -131,6 +142,9 @@
     get importer() { return state.importer; },
     ready:         ready,
     isDev:         IS_DEV,
-    SSO_LOGIN_URL: SSO_LOGIN_URL
+    SSO_LOGIN_URL: SSO_LOGIN_URL,
+    setLastPage:   setLastPage,
+    getLastPage:   getLastPage,
+    redirectToSso: redirectToSso
   };
 })();

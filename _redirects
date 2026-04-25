@@ -1,4 +1,4 @@
 # Cloudflare Pages redirects.
 # Clean Tea Passport URLs → underlying static page with query param.
 # 200 = rewrite (URL stays clean in browser); 302 would be a visible redirect.
-/passport/*    /passport.html?id=:splat    200
+/passport/*    /id.html?id=:splat    200

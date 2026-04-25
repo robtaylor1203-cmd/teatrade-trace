@@ -360,7 +360,10 @@
     loginEl.classList.remove('is-open');
     loginEl.setAttribute('aria-hidden', 'true');
   }
-  if (loginTrigger) loginTrigger.addEventListener('click', openLogin);
+  if (loginTrigger) loginTrigger.addEventListener('click', function() {
+    if (window.TTSupabase) window.TTSupabase.setLastPage();
+    openLogin();
+  });
   if (loginClose)   loginClose.addEventListener('click', closeLogin);
   if (loginEl) loginEl.addEventListener('click', function (e) {
     if (e.target === loginEl) closeLogin();
@@ -368,13 +371,26 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && loginEl && loginEl.classList.contains('is-open')) closeLogin();
   });
-  if (loginForm) loginForm.addEventListener('submit', function (e) {
+  if (loginForm) loginForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!loginForm.reportValidity()) return;
-    /* Mock success — real wiring will call Supabase auth here.
-       User stays on the current page; no redirect. */
-    try { sessionStorage.setItem('tt-trace-auth', 'mock'); } catch (_) {}
-    closeLogin();
+    if (!window.TTSupabase) return;
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value;
+    loginErr.textContent = '';
+    try {
+      var { data, error } = await window.TTSupabase.client.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginErr.textContent = error.message || 'Sign-in failed.';
+        return;
+      }
+      closeLogin();
+      // Redirect to last page or home
+      var lastPage = window.TTSupabase.getLastPage();
+      window.location.replace(lastPage);
+    } catch (err) {
+      loginErr.textContent = 'Sign-in error.';
+    }
   });
   document.querySelectorAll('#login-modal [data-social]').forEach(function (b) {
     b.addEventListener('click', function () {

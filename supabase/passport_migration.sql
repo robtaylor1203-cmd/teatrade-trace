@@ -1,19 +1,4 @@
--- =====================================================================
--- TeaTrade Trace · Tea Passport (public) migration
--- ---------------------------------------------------------------------
--- Adds:
---   tt_public_passport(p_lot_id text)  -- security-definer RPC that
---                                         returns a single jsonb doc
---                                         { lot, events[] } for the
---                                         consumer-facing Tea Passport
---                                         page. NO importer_id leakage.
---   trace_certificates                 -- audit log of every QR /
---                                         Passport link generated.
--- ---------------------------------------------------------------------
--- Idempotent: safe to run multiple times.
--- =====================================================================
 
--- ---------- 1. trace_certificates -------------------------------------
 create table if not exists public.trace_certificates (
   id            uuid primary key default gen_random_uuid(),
   lot_id        text not null references public.trace_lots(id) on delete cascade,
@@ -45,11 +30,6 @@ drop policy if exists trace_certificates_update on public.trace_certificates;
 create policy trace_certificates_update on public.trace_certificates
   for update using (importer_id = auth.uid()) with check (importer_id = auth.uid());
 
--- ---------- 2. Public Tea Passport RPC --------------------------------
--- Consumer-facing. No auth required. Exposes ONLY:
---   * lot id, estate name, status, stages_done, head hash/block, qr_url
---   * events: type, ts, payload, prev_hash, hash, block_height, tx_hash
--- It deliberately strips importer_id and any internal-only fields.
 create or replace function public.tt_public_passport(p_lot_id text)
 returns jsonb
 language plpgsql
@@ -113,10 +93,8 @@ begin
   );
 end$$;
 
--- The whole point: anonymous visitors can call this.
 grant execute on function public.tt_public_passport(text) to anon, authenticated;
 
--- ---------- 3. Sanity check -------------------------------------------
 do $$
 begin
   if to_regclass('public.trace_certificates') is null

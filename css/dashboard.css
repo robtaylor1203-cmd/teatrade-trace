@@ -1888,7 +1888,7 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 }
 .passport-hero .eyebrow {
   text-transform: uppercase; letter-spacing: 1.5px;
-  font-size: 11px; color: var(--accent); font-weight: 700; margin: 0 0 8px;
+  font-size: 11px; font-weight: 700; margin: 0 0 8px;
 }
 .passport-hero__title { font-size: 32px; line-height: 1.15; margin: 0 0 10px; font-weight: 700; }
 .passport-hero__sub { color: var(--muted); margin: 0; font-size: 15px; }

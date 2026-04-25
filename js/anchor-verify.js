@@ -1,7 +1,7 @@
 /* =====================================================================
    TeaTrade Trace · anchor verifier (DORMANT helper)
    ---------------------------------------------------------------------
-   Pure helper, no DOM, no auto-init. Loaded only when passport.html
+  Pure helper, no DOM, no auto-init. Loaded only when id.html
    (or any other page) opts in. Given a lot id, it:
 
      1. Fetches the latest anchor record from public.trace_anchors via

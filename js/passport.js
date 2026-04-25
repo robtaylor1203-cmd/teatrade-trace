@@ -1,5 +1,5 @@
 /* =====================================================================
-   TeaTrade Trace · Tea Passport (public)
+   TeaTrade Trace · Tea ID (public)
    ---------------------------------------------------------------------
    Renders /passport/<lotId> for unauthenticated visitors.
    Calls the security-definer RPC `tt_public_passport(text)` which is
@@ -20,7 +20,7 @@
   /* ----------------- 1. Resolve lot id from URL ----------------- */
   /* Supports both shapes:
        /passport/LOT-XXX-...                 (Cloudflare rewrite)
-       /passport.html?id=LOT-XXX-...         (direct)            */
+      /id.html?id=LOT-XXX-...         (direct)            */
   function resolveLotId() {
     var p = new URLSearchParams(location.search);
     var fromQuery = p.get('id');
@@ -214,7 +214,7 @@
     }
 
     if (res && res.error) return showError(res.error.message || String(res.error));
-    return showError('No passport found for ' + lotId + '.');
+    return showError('No ID found for ' + lotId + '.');
   }
 
   /* localStorage → public-shape doc, so render() can stay shared. */
@@ -327,7 +327,7 @@
     var hero = $('passportHero');
     hero.classList.remove('passport-hero--loading');
     hero.innerHTML =
-      '<p class="eyebrow">Tea Passport</p>' +
+      '<p class="eyebrow">Tea ID</p>' +
       '<h1 class="passport-hero__title">' + escapeHtml(lot.estate_name || 'A TeaTrade lot') + '</h1>' +
       '<p class="passport-hero__sub">Lot <code>' + escapeHtml(lot.id) + '</code> · minted ' + escapeHtml(fmtDate(lot.created_at)) + '</p>';
 
@@ -397,7 +397,7 @@
       setVerifyBadge(ok);
       $('passportVerifyResult').textContent = ok
         ? '✓ Every block matches. The chain is intact.'
-        : '✗ A block did not match. This passport has been tampered with.';
+        : '✗ A block did not match. This ID has been tampered with.';
       $('passportVerifyResult').classList.toggle('is-good', ok);
       $('passportVerifyResult').classList.toggle('is-bad',  !ok);
     });
