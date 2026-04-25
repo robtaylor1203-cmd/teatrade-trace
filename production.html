@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Production · TeaTrade Trace</title>
+  <meta name="description" content="Blends, finished SKUs and consumer-pack emissions — pulling lots from warehouse stock into market-ready product." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="production" data-crumb="Production">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Blending · Packing · QR Mint</p>
+        <h2 class="page-hero__title">Production</h2>
+        <p class="page-hero__sub">Bring lots out of bonded storage, blend to spec, pack into consumer formats — and mint a QR provenance certificate per finished SKU.</p>
+      </div>
+      <div class="page-hero__actions">
+        <a class="btn btn--ghost" href="./warehouse.html">From warehouse</a>
+        <button class="btn btn--primary" id="openBlendBtn">+ Open blend</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">Active blends</span><span class="sub-kpi__value" id="kpiBlends">—</span><span class="sub-kpi__delta">In production</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Finished this month</span><span class="sub-kpi__value" id="kpiFinished">—</span><span class="sub-kpi__delta">Ready for despatch</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Lots consumed</span><span class="sub-kpi__value" id="kpiLotsUsed">—</span><span class="sub-kpi__delta">Across all blends</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">QR certs minted</span><span class="sub-kpi__value" id="kpiQRMinted">—</span><span class="sub-kpi__delta sub-kpi__delta--good">On-chain</span></div>
+    </div>
+
+    <h3 class="section-title">Blends</h3>
+    <div class="estate-grid" id="blendGrid"></div>
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/production.js" defer></script>
+</body>
+</html>

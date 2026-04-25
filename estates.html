@@ -27,8 +27,8 @@
         <p class="page-hero__sub">Every accredited garden contributing to your blends — with first-party verified certifications, GPS-anchored boundaries, and live yield data.</p>
       </div>
       <div class="page-hero__actions">
-        <button class="btn btn--ghost">View on map</button>
-        <button class="btn btn--primary">+ Onboard estate</button>
+        <button class="btn btn--ghost" id="onboardEstateBtn">+ Onboard estate</button>
+        <button class="btn btn--primary" id="newLotBtn">+ New lot</button>
       </div>
     </section>
 
@@ -62,13 +62,203 @@
     <div class="estate-grid" id="estateGrid"></div>
   </main>
 
+  <!-- ===================================================================
+       New Lot Wizard · 5 lifecycle steps
+       Origin → Manufacture → Bulk packing → Outbound → Mint
+       =================================================================== -->
+  <div class="modal-overlay" id="newLotModal" aria-hidden="true">
+    <div class="modal-content modal-content--wizard" role="dialog" aria-modal="true" aria-labelledby="newLotTitle">
+      <button class="modal-close" id="newLotClose" aria-label="Close">×</button>
+
+      <header class="wizard-header">
+        <p class="eyebrow" style="margin:0 0 4px;">Crop-to-Cup · Lifecycle Capture</p>
+        <h3 id="newLotTitle">File a <span class="accent">new lot</span></h3>
+        <p style="margin:6px 0 14px;color:var(--muted);font-size:13.5px;">
+          Every step — from harvest to dispatch — is captured, hashed and anchored to chain.
+          One QR certificate at the end gives the consumer the entire story.
+        </p>
+        <ol class="wizard-stepper" id="lwStepper">
+          <li data-step="1" class="is-active"><span class="wizard-stepper__dot">1</span><span class="wizard-stepper__label">Origin</span></li>
+          <li data-step="2"><span class="wizard-stepper__dot">2</span><span class="wizard-stepper__label">Manufacture</span></li>
+          <li data-step="3"><span class="wizard-stepper__dot">3</span><span class="wizard-stepper__label">Bulk pack</span></li>
+          <li data-step="4"><span class="wizard-stepper__dot">4</span><span class="wizard-stepper__label">Outbound</span></li>
+          <li data-step="5"><span class="wizard-stepper__dot">5</span><span class="wizard-stepper__label">Mint</span></li>
+        </ol>
+      </header>
+
+      <form id="newLotForm" class="tt-form" novalidate>
+
+        <!-- STEP 1 · Origin -->
+        <section class="wizard-pane" data-pane="1">
+          <label class="tt-form__field">
+            <span class="tt-form__label">Origin estate</span>
+            <select name="estate" id="lwEstate" required></select>
+          </label>
+          <div class="tt-form__row">
+            <label class="tt-form__field">
+              <span class="tt-form__label">Harvest date</span>
+              <input type="date" name="harvestDate" id="lwHarvest" required>
+            </label>
+            <label class="tt-form__field">
+              <span class="tt-form__label">Field / section</span>
+              <input type="text" name="field" id="lwField" maxlength="60" placeholder="Block 7 · upper terrace" required>
+            </label>
+          </div>
+          <label class="tt-form__field">
+            <span class="tt-form__label">Plucker count <span class="tt-form__optional">(optional)</span></span>
+            <input type="number" name="pluckers" id="lwPluckers" min="1" max="500" step="1" placeholder="42">
+          </label>
+        </section>
+
+        <!-- STEP 2 · Manufacture -->
+        <section class="wizard-pane" data-pane="2" hidden>
+          <div class="tt-form__row">
+            <label class="tt-form__field">
+              <span class="tt-form__label">Process</span>
+              <select name="process" id="lwProcess" required>
+                <option value="">Select…</option>
+                <option value="orthodox">Orthodox</option>
+                <option value="ctc">CTC (Crush · Tear · Curl)</option>
+                <option value="green">Green · Pan-fired or Steamed</option>
+                <option value="white">White · Withered &amp; Dried</option>
+                <option value="oolong">Oolong · Partial Oxidation</option>
+                <option value="other">Other…</option>
+              </select>
+            </label>
+            <label class="tt-form__field">
+              <span class="tt-form__label">Output grade</span>
+              <input type="text" name="grade" id="lwGrade" maxlength="40" placeholder="SFTGFOP1" required>
+            </label>
+          </div>
+          <label class="tt-form__field">
+            <span class="tt-form__label">Factory</span>
+            <input type="text" name="factory" id="lwFactory" maxlength="80" placeholder="Estate factory" required>
+          </label>
+          <label class="tt-form__field">
+            <span class="tt-form__label">Output weight (tonnes)</span>
+            <input type="number" name="weight" id="lwWeight" min="0.1" max="50" step="0.1" value="8.0" required>
+          </label>
+        </section>
+
+        <!-- STEP 3 · Bulk packing -->
+        <section class="wizard-pane" data-pane="3" hidden>
+          <div class="tt-form__row">
+            <label class="tt-form__field">
+              <span class="tt-form__label">Tea form</span>
+              <select name="format" id="lwFormat" required>
+                <option value="">Select…</option>
+                <option value="whole-leaf">Whole Leaf · Orthodox</option>
+                <option value="broken-leaf">Broken Leaf</option>
+                <option value="fannings">Fannings</option>
+                <option value="dust">Dust</option>
+                <option value="ctc">CTC</option>
+                <option value="green-loose">Green · Loose Leaf</option>
+                <option value="other">Other…</option>
+              </select>
+            </label>
+            <label class="tt-form__field">
+              <span class="tt-form__label">Bulk packaging</span>
+              <select name="material" id="lwMaterial" required>
+                <option value="">Select…</option>
+                <option value="paper-sack">Paper Sack (multi-wall)</option>
+                <option value="foil-sack">Foil-Lined Sack</option>
+                <option value="jute-sack">Jute Sack</option>
+                <option value="tea-chest">Wooden Tea Chest</option>
+                <option value="bulk-bin">Bulk Bin / IBC</option>
+                <option value="other">Other…</option>
+              </select>
+            </label>
+          </div>
+          <label class="tt-form__field" id="lwFormatOtherWrap" hidden>
+            <span class="tt-form__label">Specify tea form</span>
+            <input type="text" name="formatOther" id="lwFormatOther" maxlength="60" placeholder="e.g. Silver Needle · hand-rolled">
+          </label>
+          <label class="tt-form__field" id="lwMaterialOtherWrap" hidden>
+            <span class="tt-form__label">Specify bulk packaging</span>
+            <input type="text" name="materialOther" id="lwMaterialOther" maxlength="60" placeholder="e.g. Vacuum brick · 5 kg">
+          </label>
+          <p class="tt-form__hint" id="lwChestEstimate" style="margin:4px 0 0;">Estimated chest count: —</p>
+        </section>
+
+        <!-- STEP 4 · Outbound (optional) -->
+        <section class="wizard-pane" data-pane="4" hidden>
+          <p class="tt-form__hint" style="margin:0 0 12px;">
+            Outbound details are <strong>optional at this stage</strong> — file the lot now and attach the manifest later from <a href="./shipments.html">Shipping</a>.
+          </p>
+          <label class="tt-form__field">
+            <span class="tt-form__label">Origin port</span>
+            <input type="text" name="port" id="lwPort" maxlength="60" placeholder="Colombo">
+          </label>
+          <div class="tt-form__row">
+            <label class="tt-form__field">
+              <span class="tt-form__label">Planned vessel</span>
+              <input type="text" name="vessel" id="lwVessel" maxlength="40" placeholder="MSC LORETO">
+            </label>
+            <label class="tt-form__field">
+              <span class="tt-form__label">Planned ETA</span>
+              <input type="date" name="eta" id="lwEta">
+            </label>
+          </div>
+          <label class="tt-form__field">
+            <span class="tt-form__label">MSKU <span class="tt-form__optional">(optional)</span></span>
+            <input type="text" name="msku" id="lwMsku" pattern="[A-Z]{4}[0-9]{7}" maxlength="11" placeholder="MSKU1234567">
+            <span class="tt-form__hint">ISO 6346 — 4 letters + 7 digits.</span>
+          </label>
+        </section>
+
+        <!-- STEP 5 · Mint (footprint + QR) -->
+        <section class="wizard-pane" data-pane="5" hidden>
+          <div class="wizard-success">
+            <div class="wizard-success__check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p class="eyebrow" style="margin:0 0 4px;">Lot minted · DEFRA 2026 · Anchored on-chain</p>
+            <h3 style="margin:0 0 4px;">Lot <span class="accent" id="lwLotId">—</span></h3>
+            <p class="muted-text" id="lwResultMeta" style="margin:0 0 18px;font-size:13px;"></p>
+
+            <div class="wizard-mint">
+              <div class="wizard-mint__qr" id="lwQR" aria-label="QR provenance certificate"></div>
+              <div class="wizard-mint__body">
+                <div class="wizard-result">
+                  <span class="wizard-result__label">Total Scope 3</span>
+                  <span class="wizard-result__value" id="lwResultTotal">—</span>
+                  <span class="wizard-result__unit">tCO₂e</span>
+                </div>
+                <p class="wizard-mint__hash">Block hash · <code id="lwHash">—</code></p>
+                <p class="wizard-mint__hash">Public URL · <a id="lwUrl" href="#" target="_blank" rel="noopener">—</a></p>
+              </div>
+            </div>
+
+            <ul class="wizard-breakdown" id="lwBreakdown"></ul>
+
+            <p class="tt-form__hint" style="margin:14px 0 18px;">
+              Methodology: GHG-Protocol Scope 3 · Cat. 1, 4, 9 &amp; 11.
+              Multipliers from DEFRA 2026 conversion factors (mock).
+              Each lifecycle step writes a hashed event row to <code>trace_lot_events</code>.
+            </p>
+          </div>
+        </section>
+
+        <div class="tt-form__actions wizard-nav">
+          <button type="button" class="btn btn--ghost" id="lwCancel">Cancel</button>
+          <button type="button" class="btn btn--ghost" id="lwBack" hidden>← Back</button>
+          <button type="button" class="btn btn--primary" id="lwNext">Next →</button>
+          <button type="submit" class="btn btn--primary" id="lwMint" hidden>Mint lot →</button>
+          <button type="button" class="btn btn--primary" id="lwDone" hidden>Done</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="tt-chrome-bottom"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script src="./js/supabase-client.js"></script>
   <script src="./js/data.js"></script>
   <script src="./js/chrome.js"></script>
   <script src="./js/map.js"></script>
   <script src="./js/estates.js" defer></script>
+  <script src="./js/lot-wizard.js" defer></script>
 </body>
 </html>

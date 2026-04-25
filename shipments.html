@@ -31,7 +31,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Export CSV
         </button>
-        <button class="btn btn--primary" id="newBatchBtn">+ New Batch</button>
+        <button class="btn btn--primary" id="dispatchLotBtn">+ Dispatch lot</button>
       </div>
     </section>
 
@@ -61,118 +61,47 @@
     <div id="shipmentList"></div>
   </main>
 
-  <!-- New Batch Wizard modal -->
-  <div class="modal-overlay" id="newBatchModal" aria-hidden="true">
-    <div class="modal-content modal-content--wizard" role="dialog" aria-modal="true" aria-labelledby="newBatchTitle">
-      <button class="modal-close" id="newBatchClose" aria-label="Close">×</button>
+  <!-- Dispatch Lot modal -->
+  <div class="modal-overlay" id="dispatchModal" aria-hidden="true">
+    <div class="modal-content modal-content--wizard" role="dialog" aria-modal="true" aria-labelledby="dispatchTitle">
+      <button class="modal-close" id="dispatchClose" aria-label="Close">×</button>
+      <p class="eyebrow" style="margin:0 0 6px;">Lot · already manufactured</p>
+      <h3 id="dispatchTitle">Dispatch a <span class="accent">lot</span></h3>
+      <p style="margin:0 0 18px;color:var(--muted);font-size:13.5px;">
+        Lots are filed at the estate when manufactured.  Use this to attach a shipping
+        manifest — vessel, MSKU and ETA — and progress the lot to <strong>in transit</strong>.
+      </p>
 
-      <!-- STEP 1 · Form -->
-      <div class="wizard-step" data-step="form">
-        <p class="eyebrow" style="margin:0 0 6px;">Scope 3 · DEFRA 2026 Engine</p>
-        <h3 id="newBatchTitle">File a <span class="accent">new batch</span></h3>
-        <p style="margin:0 0 18px;color:var(--muted);font-size:13.5px;">
-          Origin, container, tea form and bulk-shipping inputs are run through our DEFRA-aligned multipliers
-          to produce a verifiable Scope 3 footprint at manifest time.
-        </p>
+      <form id="dispatchForm" class="tt-form" novalidate>
+        <label class="tt-form__field">
+          <span class="tt-form__label">Lot</span>
+          <select name="lot" id="dpLot" required></select>
+        </label>
 
-        <form id="newBatchForm" class="tt-form" novalidate>
+        <label class="tt-form__field">
+          <span class="tt-form__label">Carrier tracking number (MSKU)</span>
+          <input type="text" name="msku" id="dpMsku"
+                 pattern="[A-Z]{4}[0-9]{7}" maxlength="11"
+                 placeholder="MSKU1234567" required>
+          <span class="tt-form__hint">ISO 6346 — 4 letters + 7 digits.</span>
+        </label>
+
+        <div class="tt-form__row">
           <label class="tt-form__field">
-            <span class="tt-form__label">Origin estate</span>
-            <select name="estate" id="nbEstate" required></select>
+            <span class="tt-form__label">Vessel</span>
+            <input type="text" name="vessel" id="dpVessel" placeholder="MSC LORETO" required>
           </label>
-
           <label class="tt-form__field">
-            <span class="tt-form__label">Carrier tracking number (MSKU)</span>
-            <input type="text" name="container" id="nbContainer"
-                   pattern="[A-Z]{4}[0-9]{7}" maxlength="11"
-                   placeholder="MSKU1234567" required>
-            <span class="tt-form__hint">Standard ISO 6346 — 4 letters + 7 digits.</span>
+            <span class="tt-form__label">Planned ETA</span>
+            <input type="date" name="eta" id="dpEta" required>
           </label>
-
-          <div class="tt-form__row">
-            <label class="tt-form__field">
-              <span class="tt-form__label">Tea form</span>
-              <select name="format" id="nbFormat" required>
-                <option value="">Select…</option>
-                <option value="whole-leaf">Whole Leaf · Orthodox</option>
-                <option value="broken-leaf">Broken Leaf</option>
-                <option value="fannings">Fannings</option>
-                <option value="dust">Dust</option>
-                <option value="ctc">CTC (Crush · Tear · Curl)</option>
-                <option value="green-loose">Green · Loose Leaf</option>
-                <option value="other">Other…</option>
-              </select>
-            </label>
-
-            <label class="tt-form__field">
-              <span class="tt-form__label">Bulk shipping packaging</span>
-              <select name="material" id="nbMaterial" required>
-                <option value="">Select…</option>
-                <option value="paper-sack">Paper Sack (multi-wall)</option>
-                <option value="foil-sack">Foil-Lined Sack</option>
-                <option value="jute-sack">Jute Sack</option>
-                <option value="tea-chest">Wooden Tea Chest</option>
-                <option value="bulk-bin">Bulk Bin / IBC</option>
-                <option value="other">Other…</option>
-              </select>
-            </label>
-          </div>
-
-          <label class="tt-form__field" id="nbFormatOtherWrap" hidden>
-            <span class="tt-form__label">Specify tea form</span>
-            <input type="text" name="formatOther" id="nbFormatOther" maxlength="60"
-                   placeholder="e.g. Silver Needle · hand-rolled">
-          </label>
-
-          <label class="tt-form__field" id="nbMaterialOtherWrap" hidden>
-            <span class="tt-form__label">Specify bulk packaging</span>
-            <input type="text" name="materialOther" id="nbMaterialOther" maxlength="60"
-                   placeholder="e.g. Vacuum-sealed brick · 5 kg">
-          </label>
-
-          <label class="tt-form__field">
-            <span class="tt-form__label">Net weight (tonnes)</span>
-            <input type="number" name="weight" id="nbWeight"
-                   min="0.1" max="50" step="0.1" value="8.0" required>
-          </label>
-
-          <div class="tt-form__actions">
-            <button type="button" class="btn btn--ghost" id="newBatchCancel">Cancel</button>
-            <button type="submit" class="btn btn--primary">Calculate footprint →</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- STEP 2 · Success -->
-      <div class="wizard-step" data-step="success" hidden>
-        <div class="wizard-success">
-          <div class="wizard-success__check" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <p class="eyebrow" style="margin:0 0 4px;">Manifest filed · DEFRA 2026 verified</p>
-          <h3 style="margin:0 0 4px;">Scope 3 footprint <span class="accent">calculated</span></h3>
-          <p class="muted-text" id="nbResultMeta" style="margin:0 0 18px;font-size:13px;"></p>
-
-          <div class="wizard-result">
-            <span class="wizard-result__label">Total Scope 3</span>
-            <span class="wizard-result__value" id="nbResultTotal">—</span>
-            <span class="wizard-result__unit">tCO₂e</span>
-          </div>
-
-          <ul class="wizard-breakdown" id="nbResultBreakdown"></ul>
-
-          <p class="tt-form__hint" style="margin:14px 0 18px;">
-            Methodology: GHG-Protocol Scope 3 · Cat. 1, 4, 9 &amp; 11.
-            Multipliers from DEFRA 2026 conversion factors (mock).
-            Hash will mint to ledger on customs clearance.
-          </p>
-
-          <div class="tt-form__actions">
-            <button type="button" class="btn btn--ghost" id="newBatchAnother">File another</button>
-            <button type="button" class="btn btn--primary" id="newBatchDone">Done</button>
-          </div>
         </div>
-      </div>
+
+        <div class="tt-form__actions">
+          <button type="button" class="btn btn--ghost" id="dispatchCancel">Cancel</button>
+          <button type="submit" class="btn btn--primary">Dispatch →</button>
+        </div>
+      </form>
     </div>
   </div>
 

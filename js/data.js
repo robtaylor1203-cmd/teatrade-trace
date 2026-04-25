@@ -254,6 +254,30 @@ window.TTData = (function () {
     };
   }
 
+  /* ------------------------------------------------------------- Warehouse · Production · Retail */
+  /* These power the new supply-chain segments. Each row references back
+     to a batch so we can reconstruct end-to-end provenance.            */
+  var warehouses = [
+    { id: 'WH-FXT', name: 'Felixstowe Bonded · Bay 14',  city: 'Felixstowe',  country: 'UK', capacityT: 480, occupancyT: 312, energyKgPerT: 11.2, batches: ['TT-0x4C27·B118','TT-0x3C91·B047','TT-0x2B10·F756'] },
+    { id: 'WH-LDN', name: 'TeaTrade DC · Park Royal',     city: 'London',      country: 'UK', capacityT: 240, occupancyT: 188, energyKgPerT:  9.6, batches: ['TT-0x2B10·F756','TT-0x8D19·B502','TT-0xB7E5·00C3'] },
+    { id: 'WH-BRM', name: 'Birmingham Cross-Dock',        city: 'Birmingham',  country: 'UK', capacityT: 160, occupancyT:  92, energyKgPerT:  8.4, batches: ['TT-0x8D19·B502'] }
+  ];
+
+  var blends = [
+    { id: 'BL-2026-014', sku: 'TT-EBR-250',  name: 'English Breakfast · 250g',     status: 'in-production',  weightT: 4.2, lots: ['TT-0x4C27·B118','TT-0x3C91·B047','TT-0x2B10·F756'], started: '2026-04-22', finished: null,         consumerFormat: 'standard', consumerMaterial: 'cardboard' },
+    { id: 'BL-2026-015', sku: 'TT-DAR-100',  name: 'Darjeeling First Flush · 100g', status: 'finished',       weightT: 1.8, lots: ['TT-0x8D19·B502'],                                  started: '2026-04-12', finished: '2026-04-19', consumerFormat: 'loose',    consumerMaterial: 'foil'      },
+    { id: 'BL-2026-016', sku: 'TT-EAR-200',  name: 'Earl Grey · Pyramid · 200g',    status: 'in-production',  weightT: 3.6, lots: ['TT-0x2B10·F756','TT-0xB7E5·00C3'],                  started: '2026-04-23', finished: null,         consumerFormat: 'pyramid',  consumerMaterial: 'cardboard' },
+    { id: 'BL-2026-017', sku: 'TT-GYO-50',   name: 'Gyokuro Reserve · 50g Tin',     status: 'queued',         weightT: 0.6, lots: [],                                                  started: null,         finished: null,         consumerFormat: 'loose',    consumerMaterial: 'tin'       }
+  ];
+
+  var retailOrders = [
+    { id: 'RO-39201', retailer: 'Waitrose',       channel: 'grocery',      sku: 'TT-EBR-250', qtyCases: 320, valueGBP:  78400, status: 'in-distribution', dispatched: '2026-04-24', dc: 'WH-LDN' },
+    { id: 'RO-39214', retailer: 'Fortnum & Mason',channel: 'specialist',   sku: 'TT-DAR-100', qtyCases:  84, valueGBP:  41200, status: 'delivered',       dispatched: '2026-04-21', dc: 'WH-LDN' },
+    { id: 'RO-39228', retailer: 'Whittard',       channel: 'specialist',   sku: 'TT-EAR-200', qtyCases: 140, valueGBP:  29800, status: 'picking',         dispatched: null,         dc: 'WH-FXT' },
+    { id: 'RO-39235', retailer: 'Selfridges',     channel: 'department',   sku: 'TT-GYO-50',  qtyCases:  24, valueGBP:  18600, status: 'queued',          dispatched: null,         dc: 'WH-LDN' },
+    { id: 'RO-39240', retailer: 'Ocado',          channel: 'grocery',      sku: 'TT-EBR-250', qtyCases: 480, valueGBP: 102400, status: 'in-distribution', dispatched: '2026-04-25', dc: 'WH-BRM' }
+  ];
+
   return {
     estates:        estates,
     carriers:       carriers,
@@ -268,6 +292,9 @@ window.TTData = (function () {
     carrierById:    carrierById,
     defra2026:      defra2026,
     calculateScope3: calculateScope3,
+    warehouses:     warehouses,
+    blends:         blends,
+    retailOrders:   retailOrders,
     /* Felixstowe UK = destination port */
     destination: { name: 'Felixstowe, UK', lat: 51.95, lng: 1.35 }
   };

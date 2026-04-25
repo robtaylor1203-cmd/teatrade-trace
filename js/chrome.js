@@ -14,10 +14,18 @@
 (function () {
   'use strict';
 
+  /* Reverse supply-chain order: closest to "now" first, earliest last.
+     Reads left-to-right as: where the tea ends up → where it started.
+     Analytics/meta cluster (Carbon · Certificates · API) sits after the
+     supply-chain group, separated by a divider. */
   var NAV = [
     { key: 'dashboard',    label: 'Dashboard',         href: './index.html' },
-    { key: 'shipments',    label: 'Shipments',         href: './shipments.html' },
+    { key: 'retail',       label: 'Retail',            href: './retail.html' },
+    { key: 'production',   label: 'Production',        href: './production.html' },
+    { key: 'warehouse',    label: 'Warehouse',         href: './warehouse.html' },
+    { key: 'shipments',    label: 'Shipping',          href: './shipments.html' },
     { key: 'estates',      label: 'Estates',           href: './estates.html' },
+    { key: '__divider',    divider: true },
     { key: 'carbon',       label: 'Carbon (Scope 3)',  href: './carbon.html' },
     { key: 'certificates', label: 'Certificates',      href: './certificates.html' },
     { key: 'api',          label: 'API & Webhooks',    href: './api.html' }
@@ -45,6 +53,7 @@
 
   /* -------------------------------------------------- HEADER HTML ------- */
   var navHTML = NAV.map(function (n) {
+    if (n.divider) return '<li class="secondary-nav__divider" aria-hidden="true"></li>';
     var active = n.key === page ? ' class="active"' : '';
     return '<li><a href="' + n.href + '"' + active + '>' + n.label + '</a></li>';
   }).join('');

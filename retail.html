@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retail · TeaTrade Trace</title>
+  <meta name="description" content="Outbound orders, retailer dispatch, and last-mile carbon — closing the loop on every batch." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="retail" data-crumb="Retail">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Distribution · Last Mile</p>
+        <h2 class="page-hero__title">Retail</h2>
+        <p class="page-hero__sub">Every case leaving the DC — picked, dispatched, scanned in-store. Each consumer pack carries a QR linking back to the lot's full provenance.</p>
+      </div>
+      <div class="page-hero__actions">
+        <a class="btn btn--ghost" href="./production.html">From production</a>
+        <button class="btn btn--primary" id="newOrderBtn">+ Outbound order</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">Open orders</span><span class="sub-kpi__value" id="kpiOpenOrders">—</span><span class="sub-kpi__delta">Across retailers</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">In distribution</span><span class="sub-kpi__value" id="kpiInDist">—</span><span class="sub-kpi__delta">Cases on the road</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Delivered (MTD)</span><span class="sub-kpi__value" id="kpiDelivered">—</span><span class="sub-kpi__delta">Cases · this month</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Order value</span><span class="sub-kpi__value" id="kpiOrderValue">—</span><span class="sub-kpi__delta">£ · MTD</span></div>
+    </div>
+
+    <h3 class="section-title">Outbound orders</h3>
+    <div class="estate-grid" id="orderGrid"></div>
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/retail.js" defer></script>
+</body>
+</html>

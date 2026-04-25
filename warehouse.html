@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warehouse · TeaTrade Trace</title>
+  <meta name="description" content="Bonded warehouse stock, dwell time and storage emissions across the network." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="warehouse" data-crumb="Warehouse">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Storage Network</p>
+        <h2 class="page-hero__title">Warehouse</h2>
+        <p class="page-hero__sub">Bonded inventory across UK distribution. Dwell time, occupancy and storage-emission overlays sourced from each WMS via secure API.</p>
+      </div>
+      <div class="page-hero__actions">
+        <a class="btn btn--ghost" href="./shipments.html">View inbound shipments</a>
+        <button class="btn btn--primary" id="receiveLotBtn">+ Receive lot</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">Active warehouses</span><span class="sub-kpi__value" id="kpiWh">—</span><span class="sub-kpi__delta">UK network</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Tons in store</span><span class="sub-kpi__value" id="kpiOcc">—</span><span class="sub-kpi__delta">Bonded + cleared</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Capacity used</span><span class="sub-kpi__value" id="kpiUtil">—</span><span class="sub-kpi__delta">Network average</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Storage CO₂</span><span class="sub-kpi__value" id="kpiStoreCO2">—</span><span class="sub-kpi__delta">tCO₂e · YTD</span></div>
+    </div>
+
+    <h3 class="section-title">Sites</h3>
+    <div class="estate-grid" id="warehouseGrid"></div>
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/warehouse.js" defer></script>
+</body>
+</html>
