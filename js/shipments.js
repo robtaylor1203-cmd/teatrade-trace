@@ -16,15 +16,16 @@
   /* ---------------------------- Map ----------------------------- */
   var mapHost = document.getElementById('shipmentMap');
   if (mapHost && window.TTMap) {
-    /* Group active batches (transit + port) by estate so each origin pin
-       shows a popup of the shipments coming from there. Estates without
-       active batches still render a tooltip-only pin. */
+    /* Group every batch (transit + port + cleared) by estate so each
+       origin pin shows a popup of all shipments from there. Estates
+       with zero batches still render a tooltip-only pin. */
+    var byEstate = {};
+    D.batches.forEach(function (b) {
+      (byEstate[b.estate] = byEstate[b.estate] || []).push(b);
+    });
+    /* Active routes only — we don't draw cleared lanes */
     var liveBatches = D.batches.filter(function (b) {
       return b.status === 'transit' || b.status === 'port';
-    });
-    var liveByEstate = {};
-    liveBatches.forEach(function (b) {
-      (liveByEstate[b.estate] = liveByEstate[b.estate] || []).push(b);
     });
 
     function escapeHtml(s) {
@@ -32,15 +33,22 @@
         return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
       });
     }
+    function statusLabel(s) {
+      return s === 'transit' ? 'In Transit' : s === 'port' ? 'At Port' : 'Cleared';
+    }
     function popupForEstate(e, batches) {
+      /* Surface live ones first */
+      batches = batches.slice().sort(function (a, b) {
+        var rank = { transit: 0, port: 1, cleared: 2 };
+        return (rank[a.status] || 9) - (rank[b.status] || 9);
+      });
       var rows = batches.map(function (b) {
         var c = D.carrierById(b.carrier);
-        var statusLabel = b.status === 'transit' ? 'In Transit' : 'At Port';
         return '' +
           '<div class="tt-map-popup__row">' +
             '<div class="tt-map-popup__row-head">' +
               '<code class="batch-id">' + escapeHtml(b.id) + '</code>' +
-              '<span class="status status--' + b.status + '"><span class="status__dot"></span>' + statusLabel + '</span>' +
+              '<span class="status status--' + b.status + '"><span class="status__dot"></span>' + statusLabel(b.status) + '</span>' +
             '</div>' +
             '<div class="tt-map-popup__row-meta">' +
               escapeHtml(c.name) + ' · ' + escapeHtml(b.vessel) +
@@ -61,9 +69,9 @@
 
     var pins = D.estates.map(function (e) {
       var pin = { lng: e.lng, lat: e.lat, label: e.name + ' · ' + e.country, kind: 'origin' };
-      var live = liveByEstate[e.id];
-      if (live && live.length) {
-        pin.popupHtml = popupForEstate(e, live);
+      var list = byEstate[e.id];
+      if (list && list.length) {
+        pin.popupHtml = popupForEstate(e, list);
       } else {
         pin.href = './estates.html#' + e.id;
       }
