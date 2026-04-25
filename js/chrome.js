@@ -58,6 +58,34 @@
     return '<li><a href="' + n.href + '"' + active + '>' + n.label + '</a></li>';
   }).join('');
 
+
+  function userActionsHTML(importer) {
+    // Always show theme toggle
+    var themeBtn = '<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">' +
+      '<svg class="theme-toggle__sun" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>' +
+      '<svg class="theme-toggle__moon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' +
+    '</button>';
+    if (importer && importer.company_name) {
+      // Show user icon and sign out icon button
+      var avatar = '<span class="user-avatar" title="' + importer.company_name + '">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21c.5-4 12.5-4 13 0"/></svg>' +
+      '</span>';
+      var signOut = '<button id="signOutBtn" class="signout-btn" title="Sign Out" aria-label="Sign Out" style="background:none;border:none;padding:0 0 0 8px;vertical-align:middle;cursor:pointer;">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' +
+      '</button>';
+      return themeBtn + avatar + signOut;
+    } else {
+      // Show sign up and sign in
+      return themeBtn +
+        '<a href="https://teatrade.co.uk/signup.html" title="Create Account" aria-label="Create Account">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>' +
+        '</a>' +
+        '<a href="javascript:void(0)" id="loginTrigger" title="Sign In" aria-label="Sign In">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
+        '</a>';
+    }
+  }
+
   var headerHTML =
     '<header class="site-header" role="banner">' +
       '<div class="header-top-bar">' +
@@ -68,18 +96,7 @@
           '<input type="text" class="header-search-bar" id="omniTrigger" placeholder="Search estates, batches, shipments — or ask anything…" readonly aria-label="Open AI search" />' +
           '<span class="header-search-bar__kbd" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>' +
         '</div>' +
-        '<div class="user-actions">' +
-          '<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">' +
-            '<svg class="theme-toggle__sun" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>' +
-            '<svg class="theme-toggle__moon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' +
-          '</button>' +
-          '<a href="https://teatrade.co.uk/signup.html" title="Create Account" aria-label="Create Account">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>' +
-          '</a>' +
-          '<a href="javascript:void(0)" id="loginTrigger" title="Sign In" aria-label="Sign In">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
-          '</a>' +
-        '</div>' +
+        '<div class="user-actions" id="userActions">' + userActionsHTML() + '</div>' +
         '<button class="mobile-search-icon" aria-label="Search" id="mobileOmniTrigger">' +
           '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
         '</button>' +
@@ -89,6 +106,42 @@
       '</div>' +
       '<nav class="secondary-nav" aria-label="Trace navigation"><ul>' + navHTML + '</ul></nav>' +
     '</header>';
+  // --- Dynamic user header update ---
+  function updateUserHeader(importer) {
+    var ua = document.getElementById('userActions');
+    if (!ua) return;
+    ua.innerHTML = userActionsHTML(importer);
+    // Re-bind theme toggle
+    var themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+    // Re-bind login
+    var loginTrigger = document.getElementById('loginTrigger');
+    if (loginTrigger) loginTrigger.addEventListener('click', function() {
+      if (window.TTSupabase) window.TTSupabase.setLastPage();
+      openLogin();
+    });
+    // Bind sign out
+    var signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn && window.TTSupabase) {
+      signOutBtn.addEventListener('click', async function() {
+        await window.TTSupabase.client.auth.signOut();
+        updateUserHeader();
+        window.location.replace('/index.html');
+      });
+    }
+  }
+  // --- On load, update header after auth ready ---
+  if (window.TTSupabase && window.TTSupabase.ready) {
+    window.TTSupabase.ready.then(function() {
+      updateUserHeader(window.TTSupabase.importer);
+    });
+    // Listen for auth state changes
+    window.TTSupabase.client && window.TTSupabase.client.auth.onAuthStateChange(function(event, session) {
+      var importer = window.TTSupabase.importer;
+      if (event === 'SIGNED_OUT') importer = null;
+      updateUserHeader(importer);
+    });
+  }
 
   /* breadcrumb strip removed */
   var crumbHTML = '';
