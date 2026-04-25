@@ -2132,6 +2132,35 @@ html[data-theme="dark"] .card-pill:hover { background: rgba(59,140,255,.12); }
 .adopt-inbox__actions { display: flex; gap: 8px; flex-shrink: 0; }
 .btn--sm { padding: 6px 12px; font-size: 13px; }
 
+/* Empty state inside the action card when no adoptions are pending */
+.adopt-inbox__empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 4px; padding: 28px 18px; color: var(--muted);
+  border: 1px dashed var(--border); border-radius: 12px; margin: 0 0 12px;
+}
+.adopt-inbox__empty svg { color: var(--verified); margin-bottom: 6px; }
+.adopt-inbox__empty p { margin: 0; font-size: 13px; }
+.adopt-inbox__empty p strong { color: var(--text); font-weight: 600; }
+
+/* When the pending-adoptions inbox lives in the action-card slot, it must
+   stack vertically with breathable spacing (the action-card uses center
+   alignment for the legacy mint flow which doesn't suit a list). */
+.bento-card--action#adoptInboxCard {
+  display: flex; flex-direction: column;
+  align-items: stretch; justify-content: flex-start;
+  text-align: left;
+}
+.bento-card--action#adoptInboxCard .bento-card__header { margin-bottom: 14px; }
+.bento-card--action#adoptInboxCard .adopt-inbox { flex: 0 0 auto; }
+
+/* Horizontally scrollable filter pills row (extra ledger filter pills) */
+.filter-pills--scrolly {
+  display: flex; gap: 8px; flex-wrap: nowrap;
+  overflow-x: auto; max-width: 100%;
+  scrollbar-width: thin; padding-bottom: 4px;
+}
+.filter-pills--scrolly .pill { flex: 0 0 auto; white-space: nowrap; }
+
 /* =====================================================================
    Nomination modal — used on production & retail card "Nominate" pill
    ===================================================================== */
@@ -2255,6 +2284,7 @@ html[data-theme="dark"] .audit-wizard__steps { background: #11141a; }
   list-style: none; padding: 0; margin: 0;
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
 }
+.audit-wizard__scopes--single { grid-template-columns: 1fr; }
 .audit-wizard__scope {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 12px; border: 1px solid var(--border);
@@ -2375,6 +2405,72 @@ body.audit-page {
   padding-top: 24px;
 }
 .audit-footer p { margin: 4px 0; }
+
+/* ---------- Detail trail (per-lot) ---------- */
+.audit-detail-list { display: flex; flex-direction: column; gap: 16px; }
+.audit-lot {
+  border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: 14px; padding: 18px 22px;
+  background: linear-gradient(180deg, #fff, #fafbfd);
+}
+.audit-lot__head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 18px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;
+}
+.audit-lot__id {
+  display: inline-block; font-size: 12px; padding: 3px 8px;
+  background: rgba(26,115,232,.08); color: var(--accent); border-radius: 6px;
+  margin-bottom: 6px;
+}
+.audit-lot__title { margin: 4px 0 4px; font-size: 16px; font-weight: 700; }
+.audit-lot__sub   { margin: 0; color: var(--muted); font-size: 13px; }
+.audit-lot__hash {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  min-width: 0; max-width: 100%;
+}
+.audit-lot__hash span {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+}
+.audit-lot__hash code {
+  font-size: 11px; color: var(--text); background: #f3f5f9;
+  padding: 4px 8px; border-radius: 6px; word-break: break-all; max-width: 320px;
+}
+.audit-lot__timeline {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 0;
+  position: relative;
+}
+.audit-lot__timeline::before {
+  content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--border);
+}
+.audit-lot__event {
+  position: relative; padding: 10px 0 10px 24px;
+}
+.audit-lot__event-dot {
+  position: absolute; left: 0; top: 14px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--accent);
+}
+.audit-lot__event--origin .audit-lot__event-dot,
+.audit-lot__event--manufacture .audit-lot__event-dot,
+.audit-lot__event--bulk-pack .audit-lot__event-dot { border-color: var(--verified); }
+.audit-lot__event--customs .audit-lot__event-dot,
+.audit-lot__event--outbound .audit-lot__event-dot { border-color: #f59e0b; }
+.audit-lot__event--delivered .audit-lot__event-dot { border-color: #7c3aed; }
+.audit-lot__event-when  { margin: 0; font-size: 12px; color: var(--muted); }
+.audit-lot__event-label { margin: 2px 0; font-size: 14px; }
+.audit-lot__event-meta  { margin: 0; font-size: 12px; color: var(--muted); }
+.audit-lot__event-hash  { margin: 4px 0 0; }
+.audit-lot__event-hash code {
+  font-size: 11px; color: var(--muted); background: #f3f5f9;
+  padding: 2px 6px; border-radius: 4px; word-break: break-all;
+}
+
+@media print {
+  .audit-lot { break-inside: avoid; page-break-inside: avoid; }
+}
 
 @media print {
   .audit-top__actions, .audit-top { position: static; }

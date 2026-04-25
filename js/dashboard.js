@@ -29,8 +29,23 @@
     return '<span class="carbon">' + b.co2.toFixed(2) + ' <small>tCO₂e</small></span>';
   }
 
+  function categoryFor(b) {
+    /* Map a batch's status to a coarse phase used by the ledger filter pills. */
+    if (b.status === 'transit') return 'transit';
+    if (b.status === 'port')    return 'port';
+    if (b.status === 'cleared') return 'cleared';
+    if (b.status === 'origin' || b.status === 'manufacture' || b.status === 'bulk-pack') return 'origin';
+    if (b.status === 'blend' || b.status === 'consumer-pack' || b.status === 'minted')  return 'production';
+    if (b.status === 'dispatched' || b.status === 'in-distribution')                    return 'distribution';
+    if (b.status === 'retail-inbound' || b.status === 'on-shelf')                       return 'retail';
+    if (b.status === 'delivered')                                                       return 'delivered';
+    return b.status;
+  }
+
   function render(filterVal) {
-    var rows = D.batches.filter(function (b) { return filterVal === 'all' || b.status === filterVal; }).slice(0, 6);
+    var rows = D.batches.filter(function (b) {
+      return filterVal === 'all' || categoryFor(b) === filterVal;
+    }).slice(0, 6);
     body.innerHTML = rows.map(function (b) {
       var e = D.estateById(b.estate);
       return '<tr>' +
@@ -172,6 +187,7 @@
   var inboxCard  = document.getElementById('adoptInboxCard');
   var inboxList  = document.getElementById('adoptInboxList');
   var inboxCount = document.getElementById('adoptInboxCount');
+  var inboxEmpty = document.getElementById('adoptInboxEmpty');
 
   function fmtAgo(iso) {
     if (!iso) return '';
@@ -186,9 +202,16 @@
 
   function renderInbox(items) {
     if (!inboxCard) return;
-    if (!items || !items.length) { inboxCard.hidden = true; return; }
-    inboxCard.hidden = false;
-    inboxCount.textContent = items.length;
+    var n = (items || []).length;
+    inboxCount.textContent = n;
+    if (!n) {
+      inboxList.innerHTML = '';
+      inboxList.hidden = true;
+      if (inboxEmpty) inboxEmpty.hidden = false;
+      return;
+    }
+    inboxList.hidden = false;
+    if (inboxEmpty) inboxEmpty.hidden = true;
     inboxList.innerHTML = items.map(function (n) {
       var hash = n.headHash ? String(n.headHash).slice(0, 12) + '…' : '';
       return '<li class="adopt-inbox__row" data-lot="' + n.lotId + '">' +
@@ -229,7 +252,10 @@
         btn.closest('.adopt-inbox__row').remove();
         var remaining = inboxList.querySelectorAll('.adopt-inbox__row').length;
         inboxCount.textContent = remaining;
-        if (!remaining) inboxCard.hidden = true;
+        if (!remaining) {
+          inboxList.hidden = true;
+          if (inboxEmpty) inboxEmpty.hidden = false;
+        }
       } catch (err) {
         console.error('[dashboard] accept failed', err);
         btn.disabled = false;

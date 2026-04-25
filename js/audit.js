@@ -1,7 +1,7 @@
 /* =====================================================================
    TeaTrade Trace · Audit Pack renderer
-   Reads ?from=&to=&scope=csv from the URL and builds a fully styled
-   GHG-Protocol Scope 3 audit report from TTData + TTLedger.
+   Reads ?from=&to=&scope=csv&scale=N from the URL and builds a fully
+   styled GHG-Protocol Scope 3 audit report from TTData.
    ===================================================================== */
 (function () {
   'use strict';
@@ -13,44 +13,34 @@
   var toISO   = qs.get('to')   || '';
   var scopeCsv = qs.get('scope') || '';
   var scopes  = scopeCsv ? scopeCsv.split(',').filter(Boolean) : [];
+  var scaleStr = qs.get('scale') || '10';
 
   var SCOPE_LABELS = {
-    'origin':         { label: 'Origin & cultivation',  color: '#2d6a4f' },
-    'manufacture':    { label: 'Manufacture',           color: '#b45309' },
-    'bulk-pack':      { label: 'Bulk packaging',        color: '#b45309' },
-    'outbound':       { label: 'Outbound (origin port)',color: '#1a73e8' },
-    'sea':            { label: 'Sea freight',           color: '#1a73e8' },
-    'customs':        { label: 'Customs clearance',     color: '#1a73e8' },
-    'blend':          { label: 'Blending',              color: '#b45309' },
-    'consumer-pack':  { label: 'Consumer packing',      color: '#b45309' },
-    'dispatched':     { label: 'Retail distribution',   color: '#7c3aed' },
-    'retail-inbound': { label: 'Retail inbound',        color: '#7c3aed' },
-    'on-shelf':       { label: 'On-shelf scans',        color: '#7c3aed' },
-    'delivered':      { label: 'Delivered to consumer', color: '#7c3aed' }
+    'origin':         { label: 'Origin & cultivation' },
+    'manufacture':    { label: 'Manufacture' },
+    'bulk-pack':      { label: 'Bulk packaging' },
+    'outbound':       { label: 'Outbound (origin port)' },
+    'sea':            { label: 'Sea freight' },
+    'customs':        { label: 'Customs clearance' },
+    'blend':          { label: 'Blending' },
+    'consumer-pack':  { label: 'Consumer packing' },
+    'dispatched':     { label: 'Retail distribution' },
+    'retail-inbound': { label: 'Retail inbound' },
+    'on-shelf':       { label: 'On-shelf scans' },
+    'delivered':      { label: 'Delivered to consumer' }
   };
 
-  /* Map a scope key onto the tCO₂e weight from carbonBreakdown / engine.
-     This drives the in-scope total + the breakdown bars.                 */
   var WEIGHTS_T = {
-    'origin':         58,
-    'manufacture':    37,
-    'bulk-pack':      16,
-    'outbound':       25,
-    'sea':           214,
-    'customs':         3,
-    'blend':          18,
-    'consumer-pack':  11,
-    'dispatched':     21,
-    'retail-inbound':  4,
-    'on-shelf':        2,
-    'delivered':       3
+    'origin': 58, 'manufacture': 37, 'bulk-pack': 16, 'outbound': 25,
+    'sea': 214, 'customs': 3, 'blend': 18, 'consumer-pack': 11,
+    'dispatched': 21, 'retail-inbound': 4, 'on-shelf': 2, 'delivered': 3
   };
 
   /* ------------------------------------------------------------- Helpers */
   function fmtDate(iso) {
     if (!iso) return '—';
     var d = new Date(iso);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   }
   function fmtRange() { return fmtDate(fromISO) + ' → ' + fmtDate(toISO); }
   function monthsBetween(a, b) {
@@ -58,52 +48,74 @@
     return Math.max(1, Math.round((db - da) / (1000 * 60 * 60 * 24 * 30)));
   }
   function packId() {
-    var d = new Date();
-    var stamp = d.toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    var stamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
     return 'TT-AUD-' + stamp;
   }
+  function esc(s) { return String(s == null ? '' : s).replace(/[<>]/g, ''); }
 
-  /* ------------------------------------------------------------- Cover */
   document.getElementById('auditPeriodEyebrow').textContent = 'Reporting period · ' + fmtRange();
+
+  /* ------------------------------------------------------------- Filter & sample */
+  function inRange(b) {
+    if (!fromISO || !toISO) return true;
+    if (!b.filed) return false;
+    return b.filed >= fromISO && b.filed <= toISO;
+  }
+  var filteredLots = D.batches.filter(inRange);
+
+  function applyScale(lots) {
+    if (scaleStr === 'all') return lots;
+    var n = parseInt(scaleStr, 10);
+    if (isNaN(n) || n <= 0) n = 10;
+    if (lots.length <= n) return lots;
+    var step = lots.length / n;
+    var out = [];
+    for (var i = 0; i < n; i++) out.push(lots[Math.floor(i * step)]);
+    return out;
+  }
+  var sampledLots = applyScale(filteredLots);
+
+  /* ------------------------------------------------------------- Cover meta */
   document.getElementById('auditCoverMeta').innerHTML =
     '<div><span>Period</span><strong>' + fmtRange() + '</strong></div>' +
     '<div><span>Stages</span><strong>' + scopes.length + ' selected</strong></div>' +
-    '<div><span>Standard</span><strong>GHG-Protocol Scope 3</strong></div>' +
-    '<div><span>Issuer</span><strong>TeaTrade Trace</strong></div>';
+    '<div><span>Lots in scope</span><strong>' + filteredLots.length + '</strong></div>' +
+    '<div><span>Detail trail</span><strong>' +
+      (scaleStr === 'all'
+        ? 'All ' + filteredLots.length + ' lots'
+        : sampledLots.length + ' lot' + (sampledLots.length === 1 ? '' : 's') + ' (sample)') +
+    '</strong></div>';
 
   /* ------------------------------------------------------------- Breakdown */
   var inScope = scopes.filter(function (k) { return WEIGHTS_T[k] != null; });
-  var totalT = inScope.reduce(function (a, k) { return a + WEIGHTS_T[k]; }, 0);
+  var totalWeightT = filteredLots.reduce(function (a, b) { return a + (b.weight || 0); }, 0);
+  var months = monthsBetween(fromISO, toISO);
+  var periodShare = Math.min(1, months / 12);
+  var totalT = inScope.reduce(function (a, k) { return a + WEIGHTS_T[k] * periodShare; }, 0);
   var breakdown = inScope
     .map(function (k) {
-      var t = WEIGHTS_T[k];
-      var meta = SCOPE_LABELS[k] || { label: k, color: '#1a73e8' };
-      return {
-        key: k, label: meta.label, color: meta.color,
-        t: t, pct: totalT ? Math.round((t / totalT) * 100) : 0
-      };
+      var t = WEIGHTS_T[k] * periodShare;
+      var meta = SCOPE_LABELS[k] || { label: k };
+      return { key: k, label: meta.label, t: +t.toFixed(1), pct: totalT ? Math.round((t / totalT) * 100) : 0 };
     })
     .sort(function (a, b) { return b.t - a.t; });
 
   document.getElementById('auditBreakdown').innerHTML = breakdown.map(function (row) {
     return '<li class="breakdown-row">' +
       '<span class="breakdown-row__label">' + row.label + '</span>' +
-      '<span class="carbon-bar__track"><span class="carbon-bar__fill" style="width:' + row.pct + '%;background:' + row.color + ';"></span></span>' +
+      '<span class="carbon-bar__track"><span class="carbon-bar__fill" style="width:' + row.pct + '%;background:#1a73e8;"></span></span>' +
       '<span class="breakdown-row__value">' + row.t + ' tCO₂e</span>' +
       '<span class="breakdown-row__pct">' + row.pct + '%</span>' +
     '</li>';
   }).join('');
 
   /* ------------------------------------------------------------- KPIs */
-  var lotCount = D.batches.length;
-  var totalWeightT = D.batches.reduce(function (a, b) { return a + (b.weight || 0); }, 0);
   var intensity = totalWeightT > 0 ? (totalT / totalWeightT) : 0;
-  var months = monthsBetween(fromISO, toISO);
 
   document.getElementById('auditKpis').innerHTML =
     kpiTile('Total emissions', totalT.toFixed(0), 'tCO₂e', 'In-scope across selected stages') +
     kpiTile('Intensity', intensity.toFixed(3), 'tCO₂e / t tea', 'Weighted by lot tonnage') +
-    kpiTile('Lots in scope', String(lotCount), 'lots', 'Anchored to TTLedger') +
+    kpiTile('Lots in scope', String(filteredLots.length), 'lots', 'Filed within reporting window') +
     kpiTile('Reporting window', String(months), 'month' + (months === 1 ? '' : 's'), fmtRange());
 
   function kpiTile(label, val, unit, sub) {
@@ -118,16 +130,15 @@
   var topStage = breakdown[0];
   document.getElementById('auditExecSummary').innerHTML =
     'Across the period <strong>' + fmtRange() + '</strong>, TeaTrade Trace recorded ' +
-    '<strong>' + lotCount + ' lots</strong> totalling ' +
+    '<strong>' + filteredLots.length + ' lot' + (filteredLots.length === 1 ? '' : 's') + '</strong> totalling ' +
     '<strong>' + totalWeightT.toFixed(1) + ' t</strong> of tea, with in-scope Scope 3 emissions of ' +
     '<strong>' + totalT.toFixed(0) + ' tCO₂e</strong> ' +
     '(intensity <strong>' + intensity.toFixed(3) + ' tCO₂e / t</strong>).' +
-    (topStage ? ' The largest contributor was <strong>' + topStage.label + '</strong> at ' +
-      topStage.pct + '% of the in-scope footprint.' : '') +
+    (topStage ? ' The largest contributor was <strong>' + topStage.label + '</strong> at ' + topStage.pct + '% of the in-scope footprint.' : '') +
     ' All values are derived from primary activity data captured at ledger event time and are anchored on-chain at issuance.';
 
-  /* ------------------------------------------------------------- Lots table */
-  var rows = D.batches.map(function (b) {
+  /* ------------------------------------------------------------- Lots overview */
+  function lotRow(b) {
     var e = D.estateById(b.estate);
     var co2 = b.co2 == null ? (b.weight * 0.22) : b.co2;
     var miles = Math.floor(3000 + (b.weight * 137) % 6000);
@@ -141,8 +152,56 @@
       '<td>' + ints + ' /t</td>' +
       '<td><code>' + (b.hash || '—') + '</code></td>' +
     '</tr>';
-  }).join('');
-  document.getElementById('auditLotsBody').innerHTML = rows;
+  }
+  document.getElementById('auditLotsBody').innerHTML = filteredLots.map(lotRow).join('') ||
+    '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">No lots filed within this reporting window.</td></tr>';
+  document.getElementById('auditLotsSub').textContent =
+    'Lots filed within ' + fmtRange() + '. ' + filteredLots.length + ' lot' +
+    (filteredLots.length === 1 ? '' : 's') + ' match the selected scope.';
+
+  /* ------------------------------------------------------------- Detail trail */
+  var detailHost = document.getElementById('auditDetailList');
+  if (sampledLots.length === 0) {
+    detailHost.innerHTML = '<p style="color:var(--muted);text-align:center;padding:24px 0;margin:0;">No lots available to detail for the selected period.</p>';
+  } else {
+    detailHost.innerHTML = sampledLots.map(lotDetailCard).join('');
+  }
+  document.getElementById('auditDetailSub').textContent =
+    scaleStr === 'all'
+      ? 'Full audit trail — every one of the ' + filteredLots.length + ' in-scope lot' + (filteredLots.length === 1 ? '' : 's') + ', with the complete event-by-event custody chain.'
+      : 'Showing ' + sampledLots.length + ' of ' + filteredLots.length + ' in-scope lots as a representative sample. Each lot lists every captured TTLedger event with hash anchors and actor signatures.';
+
+  function lotDetailCard(b) {
+    var e = D.estateById(b.estate);
+    var co2 = b.co2 == null ? (b.weight * 0.22) : b.co2;
+    var events = D.timelineFor(b.id);
+    return '<article class="audit-lot">' +
+      '<header class="audit-lot__head">' +
+        '<div>' +
+          '<code class="batch-id audit-lot__id">' + b.id + '</code>' +
+          '<h4 class="audit-lot__title">' + (e ? e.name + ' · ' + e.country : 'Unknown estate') + '</h4>' +
+          '<p class="audit-lot__sub">' + b.weight.toFixed(1) + ' t · ' + b.chests + ' chests · filed ' + fmtDate(b.filed) + ' · ' + co2.toFixed(2) + ' tCO₂e</p>' +
+        '</div>' +
+        '<div class="audit-lot__hash">' +
+          '<span>Public hash</span>' +
+          '<code>' + (b.hash || '—') + '</code>' +
+        '</div>' +
+      '</header>' +
+      '<ol class="audit-lot__timeline">' +
+        events.map(function (ev) {
+          return '<li class="audit-lot__event audit-lot__event--' + esc(ev.type) + '">' +
+            '<span class="audit-lot__event-dot" aria-hidden="true"></span>' +
+            '<div class="audit-lot__event-body">' +
+              '<p class="audit-lot__event-when">' + esc(ev.ts) + '</p>' +
+              '<p class="audit-lot__event-label"><strong>' + esc(ev.label) + '</strong></p>' +
+              '<p class="audit-lot__event-meta">' + esc(ev.location) + ' · ' + esc(ev.actor) + '</p>' +
+              (ev.hash ? '<p class="audit-lot__event-hash"><code>' + esc(ev.hash) + '</code></p>' : '') +
+            '</div>' +
+          '</li>';
+        }).join('') +
+      '</ol>' +
+    '</article>';
+  }
 
   /* ------------------------------------------------------------- Assurance */
   document.getElementById('auditPackId').textContent = packId();

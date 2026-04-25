@@ -56,10 +56,10 @@
       <ul class="breakdown-list" id="auditBreakdown"></ul>
     </section>
 
-    <!-- Lots in scope -->
+    <!-- Lots in scope (overview table) -->
     <section class="audit-section">
       <h3 class="audit-section__title">Lots in scope</h3>
-      <p class="audit-section__sub">Lots whose ledger events fall within the reporting period and selected stages.</p>
+      <p class="audit-section__sub" id="auditLotsSub">Lots whose ledger events fall within the reporting period and selected stages.</p>
       <table class="ledger-table audit-ledger" id="auditLotsTable">
         <thead>
           <tr>
@@ -74,6 +74,13 @@
         </thead>
         <tbody id="auditLotsBody"></tbody>
       </table>
+    </section>
+
+    <!-- Detail trail — full per-lot breakdown -->
+    <section class="audit-section">
+      <h3 class="audit-section__title">Detail trail · per-lot custody chain</h3>
+      <p class="audit-section__sub" id="auditDetailSub">For each lot in scope, a complete event-by-event trail captured from the TTLedger, with hash anchors and actor signatures.</p>
+      <div id="auditDetailList" class="audit-detail-list"></div>
     </section>
 
     <!-- Methodology -->

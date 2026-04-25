@@ -6,9 +6,23 @@
   var D = window.TTData;
 
   /* ---------- Trend chart (SVG line) ---------- */
+  /* Slice last N months for the active range pill */
+  function rangeSlice(rangeKey) {
+    var all = D.carbonSeries();
+    if (rangeKey === '3m') return all.slice(-3);
+    if (rangeKey === '6m') return all.slice(-6);
+    if (rangeKey === 'ytd') {
+      var idx = all.findIndex(function (m) { return /^Jan/.test(m.month); });
+      return idx >= 0 ? all.slice(idx) : all;
+    }
+    return all; /* 12m */
+  }
+
+  var activeRange = '12m';
+
   function drawChart() {
     var host = document.getElementById('carbonChart');
-    var data = D.carbonSeries();
+    var data = rangeSlice(activeRange);
     var W = 1200, H = 280, PAD_L = 60, PAD_R = 20, PAD_T = 18, PAD_B = 36;
     var max = Math.max.apply(null, data.map(function (d){ return Math.max(d.actual, d.baseline); })) * 1.05;
     var min = 0;
@@ -49,9 +63,14 @@
   }
   drawChart();
 
-  /* Range pills (decorative — keeps the same chart) */
+  /* Range pills — redraw chart on switch */
   var range = document.getElementById('rangeFilter');
-  if (range && window.TTChrome) TTChrome.bindFilterPills(range, function () {});
+  if (range && window.TTChrome) {
+    TTChrome.bindFilterPills(range, function (val) {
+      activeRange = val;
+      drawChart();
+    });
+  }
 
   /* ---------- Breakdown ---------- */
   var list = document.getElementById('breakdownList');
@@ -130,18 +149,19 @@
           '<div>' +
             '<p class="eyebrow">Audit pack · GHG-Protocol Scope 3</p>' +
             '<h3 id="auditWizTitle" class="audit-wizard__title">Generate audit</h3>' +
-            '<p class="audit-wizard__sub" id="auditWizSub">Step 1 of 3 — Reporting period</p>' +
+            '<p class="audit-wizard__sub" id="auditWizSub">Step 1 of 4 — Reporting period</p>' +
           '</div>' +
           '<button class="audit-wizard__close" aria-label="Close" type="button">×</button>' +
         '</div>' +
         '<div class="audit-wizard__steps" aria-hidden="true">' +
           '<span class="audit-wizard__step is-active" data-step="1">1 · Period</span>' +
           '<span class="audit-wizard__step" data-step="2">2 · Scope</span>' +
-          '<span class="audit-wizard__step" data-step="3">3 · Generate</span>' +
+          '<span class="audit-wizard__step" data-step="3">3 · Detail</span>' +
+          '<span class="audit-wizard__step" data-step="4">4 · Generate</span>' +
         '</div>' +
         '<div class="audit-wizard__body">' +
 
-          /* STEP 1 */
+          /* STEP 1 — Period */
           '<section class="audit-wizard__pane is-active" data-pane="1">' +
             '<div class="audit-wizard__field-row">' +
               '<label class="audit-wizard__field">' +
@@ -161,7 +181,7 @@
             '</div>' +
           '</section>' +
 
-          /* STEP 2 */
+          /* STEP 2 — Scope */
           '<section class="audit-wizard__pane" data-pane="2">' +
             '<div class="audit-wizard__scope-head">' +
               '<p class="audit-wizard__hint">Choose which supply-chain stages to include. Each one maps to events in your TTLedger.</p>' +
@@ -182,13 +202,36 @@
             '</ul>' +
           '</section>' +
 
-          /* STEP 3 */
+          /* STEP 3 — Detail / scale */
           '<section class="audit-wizard__pane" data-pane="3">' +
+            '<p class="audit-wizard__hint">How many lots should we list in the detail trail? You stay in control of how much data you hand over.</p>' +
+            '<ul class="audit-wizard__scopes audit-wizard__scopes--single" id="auditScale">' +
+              '<li><label class="audit-wizard__scope">' +
+                '<input type="radio" name="scale" value="1" />' +
+                '<span class="audit-wizard__scope-main"><strong>Single example</strong><small>One representative lot — fastest review</small></span>' +
+              '</label></li>' +
+              '<li><label class="audit-wizard__scope">' +
+                '<input type="radio" name="scale" value="10" checked />' +
+                '<span class="audit-wizard__scope-main"><strong>Sample · 10 lots</strong><small>Recommended for first-pass assurance</small></span>' +
+              '</label></li>' +
+              '<li><label class="audit-wizard__scope">' +
+                '<input type="radio" name="scale" value="20" />' +
+                '<span class="audit-wizard__scope-main"><strong>Sample · 20 lots</strong><small>Deeper sampling slice</small></span>' +
+              '</label></li>' +
+              '<li><label class="audit-wizard__scope">' +
+                '<input type="radio" name="scale" value="all" />' +
+                '<span class="audit-wizard__scope-main"><strong>All in-scope lots</strong><small>Full audit trail — every lot the business has touched</small></span>' +
+              '</label></li>' +
+            '</ul>' +
+          '</section>' +
+
+          /* STEP 4 — Generate */
+          '<section class="audit-wizard__pane" data-pane="4">' +
             '<div class="audit-wizard__summary">' +
               '<div><span>Period</span><strong id="sumPeriod">—</strong></div>' +
               '<div><span>Stages</span><strong id="sumStages">—</strong></div>' +
+              '<div><span>Detail trail</span><strong id="sumScale">—</strong></div>' +
               '<div><span>Standard</span><strong>GHG-Protocol Scope 3 · ISAE 3000</strong></div>' +
-              '<div><span>Issuer</span><strong>TeaTrade Trace · Importer Account</strong></div>' +
             '</div>' +
             '<p class="audit-wizard__hint">Your audit pack will open in a new tab — fully branded, hash-anchored, and ready to share with your assurance provider.</p>' +
           '</section>' +
@@ -221,10 +264,11 @@
       step = n;
       stepEls.forEach(function (e) { e.classList.toggle('is-active', +e.getAttribute('data-step') === n); });
       paneEls.forEach(function (p) { p.classList.toggle('is-active', +p.getAttribute('data-pane') === n); });
-      subEl.textContent = 'Step ' + n + ' of 3 — ' + (n === 1 ? 'Reporting period' : n === 2 ? 'Scope selection' : 'Review & generate');
+      var labels = { 1:'Reporting period', 2:'Scope selection', 3:'Detail trail', 4:'Review & generate' };
+      subEl.textContent = 'Step ' + n + ' of 4 — ' + labels[n];
       backBtn.disabled = n === 1;
-      nextBtn.textContent = n === 3 ? 'Generate audit →' : 'Next →';
-      if (n === 3) populateSummary();
+      nextBtn.textContent = n === 4 ? 'Generate audit →' : 'Next →';
+      if (n === 4) populateSummary();
     }
 
     /* Date presets */
@@ -259,14 +303,23 @@
       return Array.prototype.filter.call(scopeCbs, function (c) { return c.checked; })
         .map(function (c) { return c.value; });
     }
+    function getSelectedScale() {
+      var r = modal.querySelector('input[name="scale"]:checked');
+      return r ? r.value : '10';
+    }
 
     function populateSummary() {
       var f = modal.querySelector('#auditFrom').value;
       var t = modal.querySelector('#auditTo').value;
       var scopes = getSelectedScopes();
+      var scale = getSelectedScale();
       modal.querySelector('#sumPeriod').textContent = f + ' → ' + t;
       modal.querySelector('#sumStages').textContent = scopes.length + ' stage' + (scopes.length === 1 ? '' : 's') +
         (scopes.length === SCOPES.length ? ' (all)' : '');
+      modal.querySelector('#sumScale').textContent =
+        scale === '1'   ? 'Single example lot' :
+        scale === 'all' ? 'All in-scope lots (full trail)' :
+        scale + ' lots (sample)';
     }
 
     backBtn.addEventListener('click', function () { if (step > 1) show(step - 1); });
@@ -280,11 +333,14 @@
       } else if (step === 2) {
         if (getSelectedScopes().length === 0) { alert('Select at least one stage.'); return; }
         show(3);
+      } else if (step === 3) {
+        show(4);
       } else {
         var params = new URLSearchParams({
           from: modal.querySelector('#auditFrom').value,
           to:   modal.querySelector('#auditTo').value,
-          scope: getSelectedScopes().join(',')
+          scope: getSelectedScopes().join(','),
+          scale: getSelectedScale()
         });
         close();
         window.open('./audit.html?' + params.toString(), '_blank', 'noopener');

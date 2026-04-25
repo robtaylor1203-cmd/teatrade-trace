@@ -75,13 +75,13 @@ window.TTData = (function () {
        blend → consumer-pack → dispatched → retail-inbound → on-shelf */
     return [
       { label: 'Sea freight (origin → UK port)',     pct: 52, t: 214, color: '#1a73e8' },
-      { label: 'Cultivation (estate origin)',          pct: 14, t: 58,  color: '#2d6a4f' },
-      { label: 'Factory processing (manufacture)',     pct: 9,  t: 37,  color: '#b45309' },
-      { label: 'Blending & consumer packing',          pct: 7,  t: 29,  color: '#b45309' },
+      { label: 'Cultivation (estate origin)',          pct: 14, t: 58,  color: '#1a73e8' },
+      { label: 'Factory processing (manufacture)',     pct: 9,  t: 37,  color: '#1a73e8' },
+      { label: 'Blending & consumer packing',          pct: 7,  t: 29,  color: '#1a73e8' },
       { label: 'Inland trucking (estate → port)',     pct: 6,  t: 25,  color: '#1a73e8' },
-      { label: 'Retail distribution (last-mile)',      pct: 5,  t: 21,  color: '#7c3aed' },
-      { label: 'Bulk packaging materials',             pct: 4,  t: 16,  color: '#b45309' },
-      { label: 'Warehousing & retail ops',             pct: 3,  t: 12,  color: '#7c3aed' }
+      { label: 'Retail distribution (last-mile)',      pct: 5,  t: 21,  color: '#1a73e8' },
+      { label: 'Bulk packaging materials',             pct: 4,  t: 16,  color: '#1a73e8' },
+      { label: 'Warehousing & retail ops',             pct: 3,  t: 12,  color: '#1a73e8' }
     ];
   }
 
