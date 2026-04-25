@@ -1339,6 +1339,7 @@ html[data-theme="dark"] .risk-chip--high   { color: #f28b82; }
   transform: translateX(100%);
   transition: transform .35s var(--ease);
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex; flex-direction: column;
 }
 .drawer.is-open { transform: translateX(0); }
