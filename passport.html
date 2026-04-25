@@ -18,9 +18,8 @@
 
   <!-- =============== Public hero =============== -->
   <header class="passport-top">
-    <a class="passport-top__brand" href="https://teatrade.co.uk">
-      <span class="passport-top__logo">🍃</span>
-      <span class="passport-top__name">TeaTrade</span>
+    <a class="passport-top__brand" href="https://teatrade.co.uk" aria-label="TeaTrade home">
+      <h1 class="tt-wordmark passport-top__wordmark">Tea<span class="tt-wordmark__trade">Trade</span><span class="tt-wordmark__trace">Trace</span></h1>
     </a>
     <div class="passport-top__verify" id="passportVerify" aria-live="polite">
       <span class="passport-top__dot" id="verifyDot"></span>
@@ -56,15 +55,26 @@
       </div>
     </section>
 
+    <section class="passport-section" id="passportCertsWrap" hidden>
+      <h2 class="passport-section__title">Certifications</h2>
+      <p class="passport-section__sub">Independently audited credentials inherited from the source estate and re-attested at the point of minting.</p>
+      <div class="passport-certs" id="passportCerts"></div>
+    </section>
+
     <section class="passport-section" id="passportTimelineWrap" hidden>
       <h2 class="passport-section__title">The Journey</h2>
       <p class="passport-section__sub">Every step below was signed and added to this lot’s chain at the moment it happened. Tap any step to inspect its cryptographic block.</p>
       <ol class="passport-timeline" id="passportTimeline"></ol>
     </section>
 
-    <section class="passport-section passport-section--dark" id="passportChainWrap" hidden>
-      <h2 class="passport-section__title">Verify it yourself</h2>
-      <p class="passport-section__sub">This passport is a hash chain. Each block’s fingerprint includes the previous one — so changing any past detail breaks every block after it. Tap <strong>Verify chain</strong> to recompute every fingerprint in your browser.</p>
+    <section class="passport-section passport-section--verify" id="passportChainWrap" hidden>
+      <div class="passport-section--verify__header">
+        <span class="passport-section--verify__badge" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </span>
+        <h2 class="passport-section__title">Verify it yourself</h2>
+      </div>
+      <p class="passport-section__sub">This passport is a hash chain. Each block’s fingerprint includes the previous one — so changing any past detail breaks every block after it. Tap <strong>Verify chain</strong> to recompute every fingerprint right here in your browser.</p>
       <div class="passport-verify-actions">
         <button class="btn btn--primary" id="passportVerifyBtn">Verify chain</button>
         <span class="passport-verify-result" id="passportVerifyResult"></span>
