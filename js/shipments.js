@@ -348,7 +348,9 @@
   }
 
   function openDispatch() {
-    refreshLotOptions();
+    /* Wait for ledger hydration so server-side lots populate the picker. */
+    var afterReady = (window.TTLedger && TTLedger.ready) ? TTLedger.ready : Promise.resolve();
+    afterReady.then(function () { refreshLotOptions(); });
     dispatchForm.reset();
     dpChain.hidden = true;
     dpChain.innerHTML = '';

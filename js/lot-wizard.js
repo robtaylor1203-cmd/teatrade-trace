@@ -112,7 +112,9 @@
       });
       mode = btn.dataset.mode;
       if (mode === 'continue') {
-        populateContinueList();
+        /* Wait for Supabase hydration so server-side lots show up too. */
+        var afterReady = (L && L.ready) ? L.ready : Promise.resolve();
+        afterReady.then(function () { populateContinueList(); });
         continueWrap.hidden = false;
       } else {
         continueWrap.hidden = true;
