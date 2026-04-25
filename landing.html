@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TeaTrade Trace · Coming soon</title>
+<meta name="description" content="Cryptographic provenance and Scope 3 carbon accounting, purpose-built for the global tea trade." />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:," />
+<style>
+  :root {
+    --accent: #1a73e8;
+    --accent-soft: rgba(26,115,232,.10);
+    --verified: #1e8e3e;
+    --text: #202124;
+    --muted: #5f6368;
+    --border: #e0e3e8;
+    --bg: #f7f8fa;
+    --panel: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                 Ubuntu, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(26,115,232,.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 90%, rgba(30,142,62,.06), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+  }
+
+  .gate-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    display: grid;
+    gap: 56px;
+  }
+
+  /* Top bar */
+  .gate-top {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .tt-wordmark {
+    margin: 0; font-size: 28px; font-weight: 500; line-height: 1.1;
+    letter-spacing: -0.5px; color: #5f6368; white-space: nowrap;
+  }
+  .tt-wordmark__trade { color: var(--text); font-weight: 700; }
+  .tt-wordmark__trace {
+    display: inline-flex; align-items: center;
+    margin-left: 10px; padding: 3px 10px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 0.5em; font-weight: 700; letter-spacing: 1.2px;
+    border-radius: 999px; vertical-align: middle;
+    position: relative; top: -3px;
+  }
+  .gate-top__chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; background: #fff;
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: 12px; color: var(--muted);
+  }
+  .gate-top__chip::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+  }
+
+  /* Hero */
+  .gate-hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 880px) {
+    .gate-hero { grid-template-columns: 1fr; gap: 36px; }
+  }
+  .gate-hero__eyebrow {
+    text-transform: uppercase; letter-spacing: 1.6px;
+    font-size: 11px; font-weight: 700;
+    color: var(--accent); margin: 0 0 14px;
+  }
+  .gate-hero__title {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.05;
+    margin: 0 0 18px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .gate-hero__title em {
+    font-style: normal;
+    background: linear-gradient(120deg, var(--accent) 0%, #6b3ed8 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .gate-hero__lede {
+    font-size: 18px; line-height: 1.55;
+    color: var(--muted); margin: 0 0 28px; max-width: 540px;
+  }
+
+  /* Access card */
+  .gate-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 12px 40px rgba(15,17,21,.04);
+  }
+  .gate-card__title {
+    margin: 0 0 6px; font-size: 18px; font-weight: 700;
+  }
+  .gate-card__sub {
+    margin: 0 0 18px; font-size: 13px; line-height: 1.5; color: var(--muted);
+  }
+  .gate-form { display: grid; gap: 12px; }
+  .gate-form label {
+    display: block; font-size: 12px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
+  }
+  .gate-form input {
+    width: 100%; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    font-size: 15px; font-family: inherit;
+    background: #fafbfd; color: var(--text);
+    outline: none; transition: border-color .15s, background .15s;
+  }
+  .gate-form input:focus {
+    border-color: var(--accent); background: #fff;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .gate-form button {
+    margin-top: 4px;
+    padding: 12px 18px;
+    background: var(--accent); color: #fff;
+    border: 0; border-radius: 10px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: filter .15s, transform .05s;
+  }
+  .gate-form button:hover { filter: brightness(1.05); }
+  .gate-form button:active { transform: translateY(1px); }
+  .gate-form__error {
+    margin: 0; font-size: 13px; color: #b91c1c; min-height: 18px;
+  }
+
+  /* Pillars */
+  .gate-pillars {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 880px) {
+    .gate-pillars { grid-template-columns: 1fr; }
+  }
+  .gate-pillar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .gate-pillar__icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+  }
+  .gate-pillar__title {
+    margin: 0 0 6px; font-size: 15px; font-weight: 700;
+  }
+  .gate-pillar__body {
+    margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted);
+  }
+
+  /* Footer */
+  .gate-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px;
+  }
+  .gate-foot a { color: var(--muted); text-decoration: none; }
+  .gate-foot a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+  <main class="gate-shell">
+
+    <header class="gate-top">
+      <h1 class="tt-wordmark">Tea<span class="tt-wordmark__trade">Trade</span><span class="tt-wordmark__trace">TRACE</span></h1>
+      <span class="gate-top__chip">Private preview · invitation only</span>
+    </header>
+
+    <section class="gate-hero">
+      <div>
+        <p class="gate-hero__eyebrow">Tea provenance, on-chain</p>
+        <h2 class="gate-hero__title">
+          Every leaf, <em>verifiably</em> sourced.
+        </h2>
+        <p class="gate-hero__lede">
+          TeaTrade Trace is a cryptographic provenance and Scope 3 carbon
+          ledger purpose-built for the tea industry — from estate plucking
+          to consumer scan, every event signed and anchored.
+          We're in private preview while we onboard our first cohort of
+          importers and roasters. Public launch later this year.
+        </p>
+
+        <div class="gate-pillars">
+          <div class="gate-pillar">
+            <div class="gate-pillar__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 11 14 15 10"/><circle cx="12" cy="12" r="9"/></svg>
+            </div>
+            <h3 class="gate-pillar__title">Hash-chained ledger</h3>
+            <p class="gate-pillar__body">Every lifecycle event — plucking, packing, customs, delivery — captured as an immutable, signed event on the TTLedger.</p>
+          </div>
+          <div class="gate-pillar">
+            <div class="gate-pillar__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+            </div>
+            <h3 class="gate-pillar__title">Scope 3 carbon, audit-ready</h3>
+            <p class="gate-pillar__body">DEFRA & IMO factor sets, tonnage-weighted intensity, and one-click audit packs aligned to the GHG Protocol.</p>
+          </div>
+          <div class="gate-pillar">
+            <div class="gate-pillar__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3M21 14v7h-7"/></svg>
+            </div>
+            <h3 class="gate-pillar__title">Tea Passport, on every pack</h3>
+            <p class="gate-pillar__body">A consumer-scannable QR that opens a beautiful provenance story — the estate, the journey, the proof.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="gate-card" aria-label="Access form">
+        <h3 class="gate-card__title">Have a preview code?</h3>
+        <p class="gate-card__sub">Enter your access code to continue. If you'd like a code, drop us a line at <a href="mailto:contact@teatrade.co.uk" style="color:var(--accent);text-decoration:none;">contact@teatrade.co.uk</a>.</p>
+        <form class="gate-form" id="gateForm" autocomplete="off">
+          <div>
+            <label for="gateInput">Access code</label>
+            <input id="gateInput" type="password" inputmode="text" autocomplete="off" spellcheck="false" placeholder="••••••••••••" autofocus />
+          </div>
+          <p class="gate-form__error" id="gateError" role="alert"></p>
+          <button type="submit">Enter</button>
+        </form>
+      </aside>
+    </section>
+
+    <footer class="gate-foot">
+      <span>© 2026 TeaTrade Ltd · Surrey, UK</span>
+      <span><a href="https://teatrade.co.uk">← teatrade.co.uk</a></span>
+    </footer>
+
+  </main>
+
+<script>
+(function () {
+  'use strict';
+  // SHA-256 of the access code (precomputed). NOT a security boundary —
+  // this is a soft gate to keep the site out of public view during
+  // smoke testing. Anyone with devtools can bypass it.
+  var EXPECTED_HASH = 'f050fd2f17819bd25f3950973c02d4d3189bcc0fd09cc08071dc844811e5e0fc';
+
+  // If already unlocked this session, send straight through.
+  try {
+    if (sessionStorage.getItem('tt-trace-unlocked') === '1') {
+      window.location.replace('./index.html');
+      return;
+    }
+  } catch (e) { /* ignore */ }
+
+  async function sha256Hex(s) {
+    var enc = new TextEncoder().encode(s);
+    var buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('');
+  }
+
+  var form  = document.getElementById('gateForm');
+  var input = document.getElementById('gateInput');
+  var err   = document.getElementById('gateError');
+
+  form.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    err.textContent = '';
+    var val = (input.value || '').trim();
+    if (!val) { err.textContent = 'Please enter your access code.'; return; }
+    var hash;
+    try { hash = await sha256Hex(val); }
+    catch (e) { err.textContent = 'Hashing not supported in this browser.'; return; }
+    if (hash === EXPECTED_HASH) {
+      try { sessionStorage.setItem('tt-trace-unlocked', '1'); } catch (e) {}
+      window.location.replace('./index.html');
+    } else {
+      err.textContent = 'That code didn\u2019t match. Please try again.';
+      input.select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
