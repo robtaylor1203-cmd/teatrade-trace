@@ -1998,7 +1998,13 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 }
 .card-pill:hover { background: var(--accent-soft); border-color: var(--accent); }
 .card-pill:active { transform: scale(0.97); }
-.card-pill--qr::before { content: '?'; font-size: 13px; line-height: 1; }
+.card-pill--qr::before {
+  content: '';
+  width: 11px; height: 11px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'><path fill='black' d='M0 0h4v4H0zM1 1v2h2V1zM7 0h4v4H7zM8 1v2h2V1zM0 7h4v4H0zM1 8v2h2V8zM5 0h1v1H5zM5 2h1v2H5zM6 5h1v1H6zM5 6h1v3H5zM7 7h1v1H7zM9 6h1v1H9zM10 8h1v3h-1zM6 10h2v1H6zM8 6h1v1H8z'/></svg>") no-repeat center / contain;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'><path fill='black' d='M0 0h4v4H0zM1 1v2h2V1zM7 0h4v4H7zM8 1v2h2V1zM0 7h4v4H0zM1 8v2h2V8zM5 0h1v1H5zM5 2h1v2H5zM6 5h1v1H6zM5 6h1v3H5zM7 7h1v1H7zM9 6h1v1H9zM10 8h1v3h-1zM6 10h2v1H6zM8 6h1v1H8z'/></svg>") no-repeat center / contain;
+}
 
 /* Bottom-right corner placement on cards (avoids overlapping headers/badges) */
 .estate-card .card-pill,
