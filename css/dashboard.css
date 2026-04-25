@@ -630,9 +630,11 @@ body.trace-page {
   border: 0; border-radius: 10px;
   font: 500 14px/1 var(--font-sans);
   cursor: pointer; color: #fff;
+  text-decoration: none;
   transition: transform .2s var(--ease), box-shadow .3s var(--ease);
   white-space: nowrap;
 }
+.btn:hover { text-decoration: none; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 .btn--primary {
   background: linear-gradient(180deg, var(--accent-hi) 0%, var(--accent) 100%);
