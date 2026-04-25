@@ -82,6 +82,16 @@
     var lotId = resolveLotId();
     if (!lotId) return showError('No lot id in URL.');
 
+    /* ----- Demo passport: hard-coded full example, no Supabase ----- */
+    /* Lets us link to /passport/DEMO from any context (marketing,
+       onboarding, on-pack mock-ups) and always have a beautiful page. */
+    if (/^DEMO/i.test(lotId)) {
+      var demoDoc = await buildDemoDoc();
+      render(demoDoc);
+      verifyChain(demoDoc.events).then(setVerifyBadge);
+      return;
+    }
+
     if (!window.supabase || !window.supabase.createClient) {
       return showError('Could not load the verifier. Please refresh.');
     }
@@ -93,14 +103,116 @@
     try {
       res = await sb.rpc('tt_public_passport', { p_lot_id: lotId });
     } catch (err) {
-      return showError('Lookup failed: ' + (err && err.message || 'unknown'));
+      res = { error: err };
     }
-    if (res.error) return showError(res.error.message);
-    if (!res.data) return showError('No passport found for ' + lotId + '.');
 
-    render(res.data);
-    /* Cosmetic: auto-verify chain on load so the badge populates. */
-    verifyChain(res.data.events || []).then(setVerifyBadge);
+    if (res && res.data) {
+      render(res.data);
+      verifyChain(res.data.events || []).then(setVerifyBadge);
+      return;
+    }
+
+    /* ----- Fallback: localStorage TTLedger cache. -----
+       This makes a freshly-minted lot scannable for the importer who
+       minted it even if the Supabase row hasn't reached the public
+       RPC yet (RLS, network, eventual consistency). Other devices
+       won't see this — they'll only see the canonical Supabase doc. */
+    var local = readLocalLot(lotId);
+    if (local) {
+      console.info('[passport] Rendering from local TTLedger cache (Supabase miss).');
+      render(local);
+      verifyChain(local.events || []).then(setVerifyBadge);
+      return;
+    }
+
+    if (res && res.error) return showError(res.error.message || String(res.error));
+    return showError('No passport found for ' + lotId + '.');
+  }
+
+  /* localStorage → public-shape doc, so render() can stay shared. */
+  function readLocalLot(lotId) {
+    try {
+      var raw = localStorage.getItem('ttLedger.v1');
+      if (!raw) return null;
+      var store = JSON.parse(raw);
+      var lot = store.lots && store.lots[lotId];
+      var evs = (store.events && store.events[lotId]) || [];
+      if (!lot) return null;
+      return {
+        lot: {
+          id:                lot.id,
+          estate_id:         lot.estateId,
+          estate_name:       lot.estateName,
+          status:            lot.status,
+          stages_done:       lot.stagesDone,
+          created_at:        lot.createdAt,
+          qr_url:            null,
+          blockchain_anchor: null,
+          head_hash:         evs.length ? evs[evs.length-1].hash : null,
+          head_block:        evs.length ? evs[evs.length-1].blockHeight : null
+        },
+        events: evs.map(function (e) {
+          return {
+            type:         e.type,
+            ts:           e.ts,
+            payload:      e.payload,
+            prev_hash:    e.prevHash,
+            hash:         e.hash,
+            block_height: e.blockHeight,
+            tx_hash:      null
+          };
+        })
+      };
+    } catch (_) { return null; }
+  }
+
+  /* ----- Build a fully-populated demo doc with valid hashes ------- */
+  async function buildDemoDoc() {
+    var ZERO = '0x' + '0'.repeat(64);
+    var base = '2026-04-15T08:00:00Z';
+    function plus(days, hours) {
+      var d = new Date(base);
+      d.setUTCDate(d.getUTCDate() + days);
+      d.setUTCHours(d.getUTCHours() + (hours || 0));
+      return d.toISOString();
+    }
+    var stages = [
+      { type:'origin',      ts: plus(0,0), payload:{ estateName:'Glenburn Estate', field:'Field 4 — High Block', harvestDate:'2026-04-15', pluckers:42, elevationM:1850, cultivar:'AV2 · Clonal' } },
+      { type:'manufacture', ts: plus(1,4), payload:{ factory:'Glenburn Tea Factory', process:'Orthodox · whole-leaf', grade:'FTGFOP1', weight: 2.4, withering:'18h', oxidation:'85 min', firing:'95°C' } },
+      { type:'bulk-pack',   ts: plus(2,2), payload:{ format:'Foil-lined paper sack', material:'Recycled kraft + foil', weight: 2.4, sacks:48 } },
+      { type:'outbound',    ts: plus(4,0), payload:{ port:'Kolkata', vessel:'MV Northern Star', eta:'2026-05-21', msku:'TGHU-204461-7', sealNo:'SL-09245' } },
+      { type:'customs',     ts: plus(36,0), payload:{ port:'Felixstowe', clearance:'GVMS-9F2C', duty:'£0 · CPT origin' } },
+      { type:'dispatched',  ts: plus(37,3), payload:{ carrier:'TeaTrade Logistics', destination:'Selfridges DC', tracking:'TT-260522-A19F', cases: 240 } },
+      { type:'minted',      ts: plus(37,4), payload:{ sku:'GLN-FTGFOP1-250G', defraVersion:'2025 · v3', footprintTransport: 0.42, footprintPackaging: 0.07, footprintTotal: 0.49, seaKm: 12480 } }
+    ];
+    var prev = ZERO;
+    var events = [];
+    for (var i = 0; i < stages.length; i++) {
+      var s = stages[i];
+      var fullPayload = Object.assign({}, s.payload, { _ts: s.ts });
+      var preimage = prev + '|' + s.type + '|' + canonical(fullPayload);
+      var hash = '0x' + (await sha256Hex(preimage));
+      events.push({
+        type: s.type, ts: s.ts, payload: fullPayload,
+        prev_hash: prev, hash: hash, block_height: i + 1, tx_hash: null
+      });
+      prev = hash;
+    }
+    return {
+      lot: {
+        id: 'DEMO-GLENBURN-2026',
+        estate_id: 'GLN',
+        estate_name: 'Glenburn Estate · Darjeeling First Flush',
+        status: 'delivered',
+        stages_done: stages.map(function (s) { return s.type; }),
+        created_at: stages[0].ts,
+        qr_url: 'https://trace.teatrade.co.uk/passport/DEMO',
+        blockchain_anchor: '0xdemo' + Array(60).join('a'),
+        head_hash: prev,
+        head_block: events.length
+      },
+      events: events
+    };
   }
 
   /* ----------------- 5. Render ----------------- */
