@@ -1,122 +1,185 @@
 /* =====================================================================
-   TeaTrade Trace · Shared world map
-   Equirectangular projection · inline simplified continent polygons.
-   Usage: TTMap.render(hostEl, { pins, routes, showLegend })
+   TeaTrade Trace · Shared world map (Leaflet · CARTO basemap)
+   ---------------------------------------------------------------------
+   Visually identical to teatrade.co.uk/tea-map.html so the brand is
+   consistent across consumer + Trace + Logistics. Keeps the same public
+   API as the previous SVG implementation:
+
+     TTMap.render(host, opts, context)
+
+     opts = {
+       pins:   [{ lat, lng, label, href?, kind:'origin'|'dest' }, ...],
+       routes: [{ from:{lat,lng}, to:{lat,lng} }, ...],
+       showLegend: true|false
+     }
+
+     context = 'consumer' | 'logistics' | 'trace'
    ===================================================================== */
 window.TTMap = (function () {
   'use strict';
 
-  /* Simplified continent polygons in equirectangular percent coords.
-     (Deliberately low-fidelity — fast load, readable silhouette.) */
-  var CONTINENTS = [
-    /* North America (incl. Greenland-ish top) */
-    'M 13,10 L 22,7 L 26,10 L 30,12 L 32,18 L 35,22 L 34,28 L 29,34 L 26,40 L 23,44 L 18,44 L 14,40 L 11,34 L 9,28 L 7,22 L 8,16 Z',
-    /* Central America */
-    'M 23,44 L 28,46 L 29,50 L 27,52 L 24,50 L 22,48 Z',
-    /* South America */
-    'M 27,50 L 33,50 L 36,56 L 37,64 L 35,72 L 32,78 L 29,78 L 28,72 L 27,64 L 26,58 Z',
-    /* Europe */
-    'M 46,18 L 53,16 L 58,18 L 57,24 L 54,26 L 48,26 L 46,24 Z',
-    /* Africa */
-    'M 47,30 L 56,28 L 60,32 L 61,40 L 58,50 L 54,58 L 50,60 L 47,54 L 45,46 L 46,38 Z',
-    /* Middle East + Arabia */
-    'M 56,30 L 62,30 L 63,36 L 60,38 L 57,36 Z',
-    /* Asia (main) */
-    'M 58,14 L 72,10 L 82,12 L 90,16 L 92,22 L 88,28 L 82,32 L 76,34 L 72,34 L 68,32 L 63,30 L 60,26 L 58,20 Z',
-    /* South East Asia / India */
-    'M 68,32 L 76,34 L 78,40 L 76,44 L 72,44 L 68,40 Z',
-    /* Indonesia / archipelago */
-    'M 78,50 L 86,50 L 88,54 L 84,56 L 80,54 Z',
-    /* Australia */
-    'M 83,62 L 92,62 L 95,66 L 94,70 L 88,72 L 84,70 L 82,66 Z',
-    /* Japan */
-    'M 90,28 L 93,26 L 94,30 L 91,32 Z'
-  ];
+  var TILE_LIGHT = {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  };
+  var TILE_DARK = {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: TILE_LIGHT.attribution,
+    subdomains: 'abcd',
+    maxZoom: 19
+  };
 
+  /* Track instances per host so we can destroy on re-render */
+  var INSTANCES = new WeakMap();
+
+  function isDark() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+
+  function tileLayer() {
+    var t = isDark() ? TILE_DARK : TILE_LIGHT;
+    return L.tileLayer(t.url, {
+      attribution: t.attribution,
+      subdomains:  t.subdomains,
+      maxZoom:     t.maxZoom
+    });
+  }
+
+  function pinIcon(kind) {
+    var dest = kind === 'dest';
+    var size = dest ? 18 : 14;
+    var cls  = 'tt-map-pin' + (dest ? ' tt-map-pin--dest' : '');
+    return L.divIcon({
+      className: cls,
+      html: '<span class="tt-map-pin__dot" style="width:' + size + 'px;height:' + size + 'px;"></span>',
+      iconSize:   [size, size],
+      iconAnchor: [size/2, size/2]
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     _resolveData — placeholder for future cross-domain Supabase hydration.
+     Today this is a pass-through (pages still build pins/routes locally).
+     --------------------------------------------------------------------- */
+  function _resolveData(opts, context) {
+    if (opts.pins || opts.routes) {
+      return { pins: opts.pins || [], routes: opts.routes || [] };
+    }
+    /* Future:
+       switch (context) {
+         case 'trace':     return TTSupabase.fetch({ importer_id: TTAuth.org.id });
+         case 'logistics': return TTSupabase.fetch({ carrier_id:  TTAuth.carrier.id });
+         case 'consumer':  return TTSupabase.fetch({ verified: true, public_listing: true });
+       }
+    */
+    return { pins: [], routes: [] };
+  }
+
+  function render(host, opts, context) {
+    if (!window.L) {
+      console.error('[TTMap] Leaflet not loaded — include leaflet.js before map.js');
+      return;
+    }
+    opts    = opts    || {};
+    context = context || host.getAttribute('data-tt-context') || 'trace';
+
+    var data = _resolveData(opts, context);
+
+    /* Tear down previous instance on re-render */
+    var prev = INSTANCES.get(host);
+    if (prev) { prev.remove(); INSTANCES.delete(host); }
+
+    host.classList.add('world-map');
+    host.setAttribute('data-tt-context', context);
+    host.innerHTML = '';
+
+    var map = L.map(host, {
+      zoomControl:        true,
+      scrollWheelZoom:    false,
+      attributionControl: true,
+      worldCopyJump:      true
+    }).setView([20, 30], 2);
+
+    tileLayer().addTo(map);
+    INSTANCES.set(host, map);
+
+    /* Pins */
+    var bounds = [];
+    (data.pins || []).forEach(function (p) {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+      var marker = L.marker([p.lat, p.lng], { icon: pinIcon(p.kind), title: p.label });
+      if (p.label) marker.bindTooltip(p.label, { direction: 'top', offset: [0, -8] });
+      if (p.href) marker.on('click', function () { window.location.href = p.href; });
+      marker.addTo(map);
+      bounds.push([p.lat, p.lng]);
+    });
+
+    /* Routes — gentle curve via quadratic bezier on lat/lng */
+    (data.routes || []).forEach(function (r) {
+      if (!r.from || !r.to) return;
+      var pts = curvedLine(r.from, r.to, 24);
+      L.polyline(pts, {
+        className:   'tt-map-route',
+        weight:      2,
+        opacity:     0.55,
+        dashArray:   '4 6',
+        interactive: false
+      }).addTo(map);
+      bounds.push([r.from.lat, r.from.lng], [r.to.lat, r.to.lng]);
+    });
+
+    /* Fit if we have content; otherwise stay on the world view */
+    if (bounds.length >= 2) {
+      try { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 }); } catch (_) {}
+    } else if (bounds.length === 1) {
+      map.setView(bounds[0], 5);
+    }
+
+    /* Legend (context-aware copy) */
+    if (opts.showLegend !== false) {
+      var legend = L.control({ position: 'bottomleft' });
+      legend.onAdd = function () {
+        var d = L.DomUtil.create('div', 'map-legend');
+        var originLabel = context === 'logistics' ? 'Active lane origin' : 'Origin estate';
+        var destLabel   = context === 'logistics' ? 'Discharge port'     : 'Destination port';
+        d.innerHTML =
+          '<span class="map-legend__item"><span class="map-legend__dot map-legend__dot--origin"></span>' + originLabel + '</span>' +
+          '<span class="map-legend__item"><span class="map-legend__dot map-legend__dot--dest"></span>' + destLabel + '</span>';
+        L.DomEvent.disableClickPropagation(d);
+        return d;
+      };
+      legend.addTo(map);
+    }
+
+    /* Re-paint tiles when theme toggles */
+    var observer = new MutationObserver(function () {
+      map.eachLayer(function (l) { if (l instanceof L.TileLayer) map.removeLayer(l); });
+      tileLayer().addTo(map);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    return map;
+  }
+
+  function curvedLine(a, b, segments) {
+    var midLat = (a.lat + b.lat) / 2 + Math.abs(a.lng - b.lng) * 0.15;
+    var midLng = (a.lng + b.lng) / 2;
+    var pts = [];
+    for (var i = 0; i <= segments; i++) {
+      var t = i / segments;
+      var lat = (1-t)*(1-t)*a.lat + 2*(1-t)*t*midLat + t*t*b.lat;
+      var lng = (1-t)*(1-t)*a.lng + 2*(1-t)*t*midLng + t*t*b.lng;
+      pts.push([lat, lng]);
+    }
+    return pts;
+  }
+
+  /* Legacy helper kept for any callers still using equirectangular % */
   function project(lng, lat) {
     return { x: ((lng + 180) / 360) * 100, y: ((90 - lat) / 180) * 100 };
   }
 
-  function buildSVG() {
-    var svg = '<svg class="world-map__svg" viewBox="0 0 100 55" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">';
-    /* grid */
-    svg += '<g class="world-map__grid">';
-    for (var x = 0; x <= 100; x += 10) svg += '<line x1="'+x+'" y1="0" x2="'+x+'" y2="55"/>';
-    for (var y = 0; y <= 55; y += 5.5)  svg += '<line x1="0" y1="'+y+'" x2="100" y2="'+y+'"/>';
-    svg += '</g>';
-    /* continents — viewBox height scaled (55) so y=(0-100)*0.55 */
-    svg += '<g class="world-map__land">';
-    CONTINENTS.forEach(function (d) {
-      /* scale Y from 0-100 to 0-55 by replacing after comma */
-      var scaled = d.replace(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/g, function (_, px, py) {
-        return px + ',' + (parseFloat(py) * 0.55).toFixed(2);
-      });
-      svg += '<path class="world-map__continent" d="' + scaled + '"/>';
-    });
-    svg += '</g>';
-    svg += '</svg>';
-    return svg;
-  }
-
-  function render(host, opts) {
-    opts = opts || {};
-    host.classList.add('world-map');
-    host.innerHTML = buildSVG();
-
-    /* Pins */
-    (opts.pins || []).forEach(function (p) {
-      var pos = project(p.lng, p.lat);
-      var pin = document.createElement('a');
-      pin.href = p.href || '#';
-      pin.className = 'map-pin' + (p.kind === 'dest' ? ' map-pin--dest' : '');
-      pin.style.left = pos.x + '%';
-      pin.style.top  = (pos.y * 0.55) + '%';
-      pin.setAttribute('aria-label', p.label);
-      host.appendChild(pin);
-
-      var lbl = document.createElement('span');
-      lbl.className = 'map-label';
-      lbl.style.left = pos.x + '%';
-      lbl.style.top  = (pos.y * 0.55) + '%';
-      lbl.textContent = p.label;
-      host.appendChild(lbl);
-    });
-
-    /* Routes (simple curved lines origin → destination) */
-    if (opts.routes && opts.routes.length) {
-      var rsvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      rsvg.setAttribute('class', 'world-map__routes');
-      rsvg.setAttribute('viewBox', '0 0 100 55');
-      rsvg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-      rsvg.style.position = 'absolute';
-      rsvg.style.inset = '0';
-      rsvg.style.width = '100%';
-      rsvg.style.height = '100%';
-      rsvg.style.pointerEvents = 'none';
-      opts.routes.forEach(function (r) {
-        var a = project(r.from.lng, r.from.lat);
-        var b = project(r.to.lng,   r.to.lat);
-        var ay = a.y * 0.55, by = b.y * 0.55;
-        var mx = (a.x + b.x) / 2;
-        var my = Math.min(ay, by) - 6;
-        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('class', 'map-route');
-        path.setAttribute('d', 'M ' + a.x + ' ' + ay + ' Q ' + mx + ' ' + my + ' ' + b.x + ' ' + by);
-        rsvg.appendChild(path);
-      });
-      host.appendChild(rsvg);
-    }
-
-    /* Legend */
-    if (opts.showLegend !== false) {
-      var l = document.createElement('div');
-      l.className = 'map-legend';
-      l.innerHTML =
-        '<span class="map-legend__item"><span class="map-legend__dot map-legend__dot--origin"></span>Origin estate</span>' +
-        '<span class="map-legend__item"><span class="map-legend__dot map-legend__dot--dest"></span>Destination port</span>';
-      host.appendChild(l);
-    }
-  }
-
-  return { render: render, project: project };
+  return { render: render, project: project, _resolveData: _resolveData };
 })();

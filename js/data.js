@@ -124,6 +124,112 @@ window.TTData = (function () {
   function estateById(id) { return estates.find(function (e) { return e.id === id; }); }
   function carrierById(id){ return carriers.find(function (c) { return c.id === id; }); }
 
+  /* =====================================================================
+     DEFRA 2026 conversion factors  (mock — values aligned to the shape of
+     the real BEIS / DEFRA dataset for demo purposes only).
+     All values expressed as kgCO₂e per tonne of finished tea.
+     ===================================================================== */
+  var defra2026 = {
+    version: 'DEFRA-2026.1',
+
+    /* --- Transport (Cat 4 · Upstream T&D) ----------------------------- */
+    transport: {
+      seaFreightPerTonneKm: 0.01614,   // kgCO2e / t·km · container ship
+      inlandRoadPerTonneKm: 0.10778,   // kgCO2e / t·km · HGV avg load
+      originHaulageKm:       420,      // estate → origin port (avg)
+      ukDistributionKm:      180       // Felixstowe → bonded warehouse
+    },
+
+    /* --- Cultivation + factory (Cat 1) -------------------------------- */
+    cultivation: {
+      // kg CO2e / tonne tea, varies by origin elevation + energy mix
+      base: 1820,
+      countryAdjust: {
+        'India':       1.00,
+        'Sri Lanka':   0.94,
+        'Kenya':       1.18,   // diesel-heavy CTC factories
+        'China':       0.86,
+        'Japan':       0.78,   // shaded gyokuro · electric
+        'South Korea': 0.82,
+        'Malawi':      0.97
+      }
+    },
+
+    /* --- Packaging (Cat 1 · purchased goods) -------------------------- */
+    /* Format = how the leaf is presented (drives material throughput).
+       Material = the primary outer packaging the consumer receives.     */
+    packagingFormat: {
+      pyramid:  { factor: 1.35, label: 'Pyramid Teabags',  note: 'PLA mesh + string + tag' },
+      standard: { factor: 1.00, label: 'Standard Teabags', note: 'Filter paper, stapled' },
+      loose:    { factor: 0.55, label: 'Loose Leaf',       note: 'No individual unit pack' }
+    },
+    packagingMaterial: {
+      cardboard: { factor: 1.00, kgPerTonne: 240, label: 'Cardboard',  note: 'FSC-certified carton' },
+      foil:      { factor: 1.45, kgPerTonne: 360, label: 'Foil Pouch', note: 'PET/Al laminate' },
+      tin:       { factor: 2.85, kgPerTonne: 720, label: 'Tin',        note: 'Tin-plated steel' }
+    }
+  };
+
+  /* ---------------------------------------------------------------------
+     calculateScope3(input) → { totalT, transportT, packagingT, breakdown }
+     input = { estateId, weight (tonnes), format, material }
+     --------------------------------------------------------------------- */
+  function calculateScope3(input) {
+    var estate = estateById(input.estateId);
+    var weight = Number(input.weight) || 0;
+    var f = defra2026;
+
+    /* great-circle distance (km) from estate → Felixstowe, haversine */
+    var dest = { lat: 51.95, lng: 1.35 };
+    function haversine(a, b) {
+      var R = 6371, toRad = Math.PI / 180;
+      var dLat = (b.lat - a.lat) * toRad;
+      var dLng = (b.lng - a.lng) * toRad;
+      var s = Math.sin(dLat/2)*Math.sin(dLat/2) +
+              Math.cos(a.lat*toRad)*Math.cos(b.lat*toRad)*
+              Math.sin(dLng/2)*Math.sin(dLng/2);
+      return 2 * R * Math.asin(Math.sqrt(s));
+    }
+    var seaKm = estate ? haversine({lat:estate.lat,lng:estate.lng}, dest) : 12000;
+
+    /* ---- Transport CO₂ (Cat 4) ---- */
+    var seaKg     = weight * seaKm * f.transport.seaFreightPerTonneKm;
+    var originKg  = weight * f.transport.originHaulageKm * f.transport.inlandRoadPerTonneKm;
+    var ukKg      = weight * f.transport.ukDistributionKm * f.transport.inlandRoadPerTonneKm;
+    var transportKg = seaKg + originKg + ukKg;
+
+    /* ---- Cultivation + factory CO₂ (Cat 1) ---- */
+    var countryFactor = (estate && f.cultivation.countryAdjust[estate.country]) || 1.0;
+    var cultivationKg = weight * f.cultivation.base * countryFactor;
+
+    /* ---- Packaging CO₂ (Cat 1) ---- */
+    var fmt = f.packagingFormat[input.format]   || f.packagingFormat.standard;
+    var mat = f.packagingMaterial[input.material] || f.packagingMaterial.cardboard;
+    var packagingKg = weight * mat.kgPerTonne * fmt.factor * mat.factor;
+
+    var totalKg = transportKg + cultivationKg + packagingKg;
+
+    /* Convert to tonnes for display */
+    var toT = function (kg) { return +(kg / 1000).toFixed(2); };
+    var pct = function (kg) { return Math.round((kg / totalKg) * 100); };
+
+    return {
+      version:     f.version,
+      estate:      estate,
+      weight:      weight,
+      seaKm:       Math.round(seaKm),
+      totalT:      toT(totalKg),
+      transportT:  toT(transportKg),
+      packagingT:  toT(packagingKg + cultivationKg),
+      breakdown: [
+        { key:'sea',      label:'Sea freight',           sub: Math.round(seaKm) + ' km · container ship', t: toT(seaKg),         pct: pct(seaKg) },
+        { key:'inland',   label:'Inland trucking',       sub: 'Origin + UK distribution',                  t: toT(originKg+ukKg), pct: pct(originKg+ukKg) },
+        { key:'cultivation', label:'Cultivation + factory', sub: estate ? estate.country + ' grid mix' : 'Country avg', t: toT(cultivationKg), pct: pct(cultivationKg) },
+        { key:'packaging',label: fmt.label + ' · ' + mat.label, sub: mat.note,                              t: toT(packagingKg),   pct: pct(packagingKg) }
+      ]
+    };
+  }
+
   return {
     estates:        estates,
     carriers:       carriers,
@@ -136,6 +242,8 @@ window.TTData = (function () {
     webhookEvents:  webhookEvents,
     estateById:     estateById,
     carrierById:    carrierById,
+    defra2026:      defra2026,
+    calculateScope3: calculateScope3,
     /* Felixstowe UK = destination port */
     destination: { name: 'Felixstowe, UK', lat: 51.95, lng: 1.35 }
   };

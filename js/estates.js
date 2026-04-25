@@ -19,7 +19,7 @@
       return { lng: e.lng, lat: e.lat, label: e.name + ' · ' + e.country, href: '#' + e.id, kind: 'origin' };
     });
     pins.push({ lng: D.destination.lng, lat: D.destination.lat, label: D.destination.name, kind: 'dest' });
-    TTMap.render(mapHost, { pins: pins });
+    TTMap.render(mapHost, { pins: pins }, 'trace');
   }
 
   /* ---------------------------- Grid ---------------------------- */

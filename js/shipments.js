@@ -24,7 +24,7 @@
       var e = D.estateById(b.estate);
       return { from: { lng: e.lng, lat: e.lat }, to: D.destination };
     });
-    TTMap.render(mapHost, { pins: pins, routes: routes });
+    TTMap.render(mapHost, { pins: pins, routes: routes }, 'trace');
   }
 
   /* ---------------------------- List ---------------------------- */
@@ -202,6 +202,151 @@
     URL.revokeObjectURL(url);
   });
   document.getElementById('newBatchBtn').addEventListener('click', function () {
-    alert('Demo: this would open the new-batch wizard.');
+    openWizard();
   });
+
+  /* =====================================================================
+     New Batch Wizard · DEFRA 2026 engine
+     ===================================================================== */
+  var wizardEl    = document.getElementById('newBatchModal');
+  var wizardClose = document.getElementById('newBatchClose');
+  var wizardForm  = document.getElementById('newBatchForm');
+  var wizardCancel= document.getElementById('newBatchCancel');
+  var wizardDone  = document.getElementById('newBatchDone');
+  var wizardAgain = document.getElementById('newBatchAnother');
+  var stepForm    = wizardEl.querySelector('[data-step="form"]');
+  var stepSuccess = wizardEl.querySelector('[data-step="success"]');
+
+  /* Populate estate dropdown from TTData (single source of truth) */
+  var estateSelect = document.getElementById('nbEstate');
+  estateSelect.innerHTML = '<option value="">Select estate…</option>' +
+    D.estates.map(function (e) {
+      return '<option value="' + e.id + '">' + e.name + ' · ' + e.country + '</option>';
+    }).join('');
+
+  function openWizard() {
+    showStep('form');
+    wizardForm.reset();
+    document.getElementById('nbWeight').value = '8.0';
+    wizardEl.classList.add('is-open');
+    wizardEl.setAttribute('aria-hidden', 'false');
+    setTimeout(function () { estateSelect.focus(); }, 60);
+  }
+  function closeWizard() {
+    wizardEl.classList.remove('is-open');
+    wizardEl.setAttribute('aria-hidden', 'true');
+  }
+  function showStep(name) {
+    stepForm.hidden    = name !== 'form';
+    stepSuccess.hidden = name !== 'success';
+  }
+
+  wizardClose.addEventListener('click', closeWizard);
+  wizardCancel.addEventListener('click', closeWizard);
+  wizardDone.addEventListener('click', closeWizard);
+  wizardAgain.addEventListener('click', openWizard);
+  wizardEl.addEventListener('click', function (e) {
+    if (e.target === wizardEl) closeWizard();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && wizardEl.classList.contains('is-open')) closeWizard();
+  });
+
+  wizardForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!wizardForm.reportValidity()) return;
+
+    var data = new FormData(wizardForm);
+    var input = {
+      estateId: data.get('estate'),
+      weight:   data.get('weight'),
+      format:   data.get('format'),
+      material: data.get('material')
+    };
+    var msku  = data.get('container');
+    var result = D.calculateScope3(input);
+
+    /* Optimistic UI: paint the success state immediately ... */
+    renderSuccess(result, { pending: true });
+    showStep('success');
+
+    /* ... then persist to Supabase. RLS guarantees we can only insert
+       rows where importer_id = auth.uid(). */
+    persistBatch(result, input, msku).then(function (row) {
+      renderSuccess(result, { row: row });
+    }).catch(function (err) {
+      console.error('[trace_batches insert failed]', err);
+      renderSuccess(result, { error: err.message || 'Insert failed' });
+    });
+  });
+
+  async function persistBatch(result, input, msku) {
+    if (!window.TTSupabase) throw new Error('Supabase client not loaded');
+    await TTSupabase.ready;
+
+    /* Local dev: no real session — return a stub so the success state
+       still confirms the calculation without hitting the network. */
+    if (TTSupabase.isDev && !TTSupabase.session) {
+      return { id: 'dev-' + Math.random().toString(16).slice(2, 10), _dev: true };
+    }
+
+    var sb       = TTSupabase.client;
+    var importer = TTSupabase.importer;
+    if (!importer) throw new Error('No importer profile in session');
+
+    var hash = '0x' + Math.random().toString(16).slice(2, 10) + '…';
+
+    var insert = await sb.from('trace_batches').insert({
+      importer_id:        importer.id,
+      estate_name:        result.estate ? result.estate.name : 'Unknown',
+      msku:               msku,
+      packaging_format:   input.format,
+      packaging_material: input.material,
+      weight_t:           Number(input.weight),
+      co2_transport:      result.transportT,
+      co2_packaging:      result.packagingT,
+      total_co2:          result.totalT,
+      hash:               hash,
+      status:             'pending'
+    }).select().single();
+
+    if (insert.error) throw insert.error;
+    return insert.data;
+  }
+
+  function renderSuccess(result, opts) {
+    opts = opts || {};
+    var meta = document.getElementById('nbResultMeta');
+    var statusLine =
+      opts.error   ? ' · <span style="color:#d93025;">Save failed: ' + opts.error + '</span>' :
+      opts.pending ? ' · <span class="muted-text">Saving to ledger…</span>' :
+      opts.row     ? ' · <span style="color:var(--verified);">Filed · ' + opts.row.id.slice(0,8) + '</span>' : '';
+
+    meta.innerHTML =
+      result.estate.name + ' · ' + result.weight + ' t · ' +
+      result.seaKm.toLocaleString() + ' km to Felixstowe · ' + result.version + statusLine;
+
+    document.getElementById('nbResultTotal').textContent = result.totalT;
+
+    var summary = [
+      { label: 'Transport CO₂',           sub: 'Sea + inland (Cat 4)',                  t: result.transportT },
+      { label: 'Packaging & Factory CO₂', sub: 'Cultivation + materials (Cat 1)',       t: result.packagingT }
+    ];
+    var detail = result.breakdown;
+
+    document.getElementById('nbResultBreakdown').innerHTML =
+      summary.map(function (s) {
+        return '<li>' +
+          '<span><span class="wizard-breakdown__label">' + s.label + '</span><br>' +
+          '<span class="wizard-breakdown__sub">' + s.sub + '</span></span>' +
+          '<span class="wizard-breakdown__value">' + s.t.toFixed(2) + ' tCO₂e</span>' +
+          '<span class="wizard-breakdown__pct">' + Math.round((s.t / result.totalT) * 100) + '%</span>' +
+        '</li>';
+      }).join('') +
+      '<li style="grid-template-columns:1fr;background:transparent;border:0;padding:6px 0 0;">' +
+        '<span class="wizard-breakdown__sub">Component detail · ' +
+          detail.map(function (d) { return d.label + ' ' + d.t.toFixed(2) + 't (' + d.pct + '%)'; }).join(' · ') +
+        '</span>' +
+      '</li>';
+  }
 })();

@@ -67,7 +67,7 @@
           '<a href="https://teatrade.co.uk/signup.html" title="Create Account" aria-label="Create Account">' +
             '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>' +
           '</a>' +
-          '<a href="https://teatrade.co.uk/login.html" title="Sign In" aria-label="Sign In">' +
+          '<a href="javascript:void(0)" id="loginTrigger" title="Sign In" aria-label="Sign In">' +
             '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
           '</a>' +
         '</div>' +
@@ -129,6 +129,31 @@
       '<div class="modal-content" role="dialog" aria-modal="true">' +
         '<button class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>' +
         '<div id="modal-body-content"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div id="login-modal" class="modal-overlay" aria-hidden="true">' +
+      '<div class="modal-content auth-form-box" role="dialog" aria-modal="true" aria-labelledby="login-title">' +
+        '<button class="modal-close" id="login-close-btn" aria-label="Close">&times;</button>' +
+        '<h1 class="auth-welcome" id="login-title">Welcome Back to <span class="accent">TeaTrade Trace</span></h1>' +
+        '<h2 class="auth-sub">Sign In</h2>' +
+        '<form id="login-form" novalidate>' +
+          '<div class="form-group">' +
+            '<label for="login-email">Email</label>' +
+            '<input type="email" id="login-email" autocomplete="email" required>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label for="login-password">Password</label>' +
+            '<input type="password" id="login-password" autocomplete="current-password" required>' +
+          '</div>' +
+          '<p class="form-error-message" id="login-error"></p>' +
+          '<button type="submit" class="auth-button">Sign In</button>' +
+        '</form>' +
+        '<div class="social-login">' +
+          '<button type="button" class="social-btn google-btn" data-social="google">Continue with Google</button>' +
+          '<button type="button" class="social-btn facebook-btn" data-social="facebook">Continue with Facebook</button>' +
+          '<button type="button" class="social-btn apple-btn" data-social="apple">Continue with Apple</button>' +
+        '</div>' +
+        '<p class="auth-switch">Don\'t have an account? <a href="https://teatrade.co.uk/signup.html" target="_blank" rel="noopener">Create one</a></p>' +
       '</div>' +
     '</div>';
 
@@ -299,6 +324,55 @@
   if (modalEl) modalEl.addEventListener('click', function (e) { if (e.target === modalEl) closeModal(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modalEl.classList.contains('is-open')) closeModal();
+  });
+
+  /* ==================================================================
+     Login modal — keeps users on the trace.* subdomain.
+     On successful (mock) auth we simply close the modal so the user
+     remains on whatever page they invoked sign-in from.
+     ================================================================== */
+  var loginEl      = document.getElementById('login-modal');
+  var loginTrigger = document.getElementById('loginTrigger');
+  var loginClose   = document.getElementById('login-close-btn');
+  var loginForm    = document.getElementById('login-form');
+  var loginErr     = document.getElementById('login-error');
+
+  function openLogin() {
+    if (!loginEl) return;
+    if (loginErr) loginErr.textContent = '';
+    loginEl.classList.add('is-open');
+    loginEl.setAttribute('aria-hidden', 'false');
+    setTimeout(function () {
+      var f = document.getElementById('login-email'); if (f) f.focus();
+    }, 60);
+  }
+  function closeLogin() {
+    if (!loginEl) return;
+    loginEl.classList.remove('is-open');
+    loginEl.setAttribute('aria-hidden', 'true');
+  }
+  if (loginTrigger) loginTrigger.addEventListener('click', openLogin);
+  if (loginClose)   loginClose.addEventListener('click', closeLogin);
+  if (loginEl) loginEl.addEventListener('click', function (e) {
+    if (e.target === loginEl) closeLogin();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && loginEl && loginEl.classList.contains('is-open')) closeLogin();
+  });
+  if (loginForm) loginForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!loginForm.reportValidity()) return;
+    /* Mock success — real wiring will call Supabase auth here.
+       User stays on the current page; no redirect. */
+    try { sessionStorage.setItem('tt-trace-auth', 'mock'); } catch (_) {}
+    closeLogin();
+  });
+  document.querySelectorAll('#login-modal [data-social]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      /* Mock OAuth — real wiring will trigger provider flow here. */
+      try { sessionStorage.setItem('tt-trace-auth', b.getAttribute('data-social')); } catch (_) {}
+      closeLogin();
+    });
   });
 
   /* ==================================================================
