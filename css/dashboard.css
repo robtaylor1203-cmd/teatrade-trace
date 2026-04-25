@@ -1678,7 +1678,7 @@ pre.code-block .c  { color: #5f6b7a; }   /* comment */
 
 
 /* =====================================================================
-   Lot Wizard · 5-step stepper + mint
+   Lot Wizard ï¿½ 5-step stepper + mint
    ===================================================================== */
 .wizard-header { margin-bottom: 16px; }
 .wizard-stepper {
@@ -1715,7 +1715,7 @@ pre.code-block .c  { color: #5f6b7a; }   /* comment */
 
 .tt-form__optional { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 4px; }
 
-/* Mint pane (step 5) — QR + footprint side by side */
+/* Mint pane (step 5) ï¿½ QR + footprint side by side */
 .wizard-mint {
   display: grid; grid-template-columns: auto 1fr; gap: 18px;
   margin: 14px 0; padding: 14px;
@@ -1750,7 +1750,7 @@ html[data-theme="dark"] .wizard-mint__qr { background: #fff; }
 
 
 /* =====================================================================
-   Lot Wizard · mode toggle (new vs continue)
+   Lot Wizard ï¿½ mode toggle (new vs continue)
    ===================================================================== */
 .wizard-mode {
   display: inline-flex; gap: 4px; padding: 4px;
@@ -1819,7 +1819,7 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 
 
 /* =====================================================================
-   Tea Passport (public page) — consumer-facing, no auth.
+   Tea Passport (public page) ï¿½ consumer-facing, no auth.
    Lives at /passport/<lotId>. Self-contained styles below.
    ===================================================================== */
 .passport-page {
@@ -2000,11 +2000,11 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 .card-pill:active { transform: scale(0.97); }
 .card-pill--qr::before { content: '?'; font-size: 13px; line-height: 1; }
 
-/* Top-right corner placement on cards */
+/* Bottom-right corner placement on cards (avoids overlapping headers/badges) */
 .estate-card .card-pill,
 .shipment-card .card-pill,
 .cert-card .card-pill {
-  position: absolute; top: 12px; right: 12px; z-index: 2;
+  position: absolute; bottom: 12px; right: 12px; z-index: 2;
 }
 
 html[data-theme="dark"] .card-pill { background: #1a1f29; border-color: #252a34; color: var(--accent-hi, #3b8cff); }
