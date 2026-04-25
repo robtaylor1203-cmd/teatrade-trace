@@ -1,7 +1,7 @@
 -- =====================================================================
 -- TeaTrade Trace · admin user + dummy data seed
--- Run AFTER trace_schema.sql.
--- Marks contact@teatrade.co.uk as admin and seeds 12 demo batches the
+-- Run AFTER trace_schema.sql AND trace_lots_migration.sql.
+-- Marks contact@teatrade.co.uk as admin and seeds 12 demo lots the
 -- first time that user signs in (idempotent — safe to re-run).
 -- =====================================================================
 
@@ -11,6 +11,9 @@ alter table public.trace_importers
 
 
 -- ---------- 2. Seed routine ------------------------------------------
+-- Inserts one trace_lots row + a hash-chained genesis 'minted' event in
+-- trace_lot_events for each demo lot, so the seeded data is replayable
+-- and indistinguishable from real wizard output.
 create or replace function public.trace_seed_demo_for(p_user uuid)
 returns void
 language plpgsql
@@ -19,32 +22,73 @@ set search_path = public
 as $$
 declare
   v_count int;
+  v_lot   record;
+  v_hash  text;
+  v_payload jsonb;
 begin
-  -- Only seed if this importer has no batches yet.
+  -- Only seed if this importer has no lots yet.
   select count(*) into v_count
-    from public.trace_batches
+    from public.trace_lots
     where importer_id = p_user;
 
   if v_count > 0 then
     return;
   end if;
 
-  insert into public.trace_batches
-    (importer_id, estate_name, msku, packaging_format, packaging_material,
-     weight_t, co2_transport, co2_packaging, total_co2, hash, status)
-  values
-    (p_user,'Glenburn Estate, India',       'MSKU1024788','pyramid','tin',       9.6, 1.84, 1.42, 3.26,'0x8a1fd09277fe…','transit'),
-    (p_user,'Satemwa Estate, Malawi',       'MSCU7710456','standard','cardboard',12.4,2.10, 0.74, 2.84,'0x4c27b118a002…','port'),
-    (p_user,'Uva Highlands, Sri Lanka',     'CMAU3308819','loose','foil',         6.8, 1.21, 0.71, 1.92,'0x9e33a447fb1e…','transit'),
-    (p_user,'Nuwara Eliya Co-op, Sri Lanka','CMAU2049915','standard','cardboard',14.2,2.30, 0.81, 3.11,'0x2b10f7561044…','cleared'),
-    (p_user,'Kericho Highlands, Kenya',     'MSCU8821044','standard','cardboard',28.4,3.40, 1.02, 4.42,'0x7f88c201ae23…','transit'),
-    (p_user,'Tongmu Village, China',        'EGHU2210774','loose','tin',          2.1, 0.62, 0.48, 1.10,'0x1d44a8803c91…','transit'),
-    (p_user,'Mangalam Estate, Assam',       'HLXU4471002','standard','foil',     18.2,2.60, 0.92, 3.52,'0x6a02e3990ad4…','transit'),
-    (p_user,'Makaibari Estate, India',      'MSKU3398170','pyramid','cardboard',  4.8, 0.94, 0.34, 1.28,'0x3c91b047ee50…','port'),
-    (p_user,'Ujidake Gardens, Japan',       'EGHU5512446','loose','tin',          1.6, 0.41, 0.36, 0.77,'0x5f12d66839a7…','transit'),
-    (p_user,'Anseong Green, South Korea',   'MSCU6620083','loose','cardboard',    2.4, 0.52, 0.22, 0.74,'0xb7e500c3ff22…','cleared'),
-    (p_user,'Kericho Highlands, Kenya',     'HLXU9930221','standard','foil',     32.1,3.92, 1.18, 5.10,'0x2a77c4915780…','transit'),
-    (p_user,'Glenburn Estate, India',       'MSKU4407110','pyramid','cardboard',  6.4, 1.30, 0.72, 2.02,'0x8d19b5029fcc…','cleared');
+  -- 12 demo lots: id, estate, msku, packaging_format, packaging_material,
+  -- weight_t, co2_transport, co2_packaging, total_co2, status
+  for v_lot in
+    select * from (values
+      ('LOT-GLN-260101-A1B2','Glenburn Estate, India',       'MSKU1024788','pyramid','tin',       9.6, 1.84, 1.42, 3.26,'dispatched'),
+      ('LOT-SAT-260103-C3D4','Satemwa Estate, Malawi',       'MSCU7710456','standard','cardboard',12.4,2.10, 0.74, 2.84,'dispatched'),
+      ('LOT-UVA-260108-E5F6','Uva Highlands, Sri Lanka',     'CMAU3308819','loose','foil',         6.8, 1.21, 0.71, 1.92,'dispatched'),
+      ('LOT-NUW-260112-G7H8','Nuwara Eliya Co-op, Sri Lanka','CMAU2049915','standard','cardboard',14.2,2.30, 0.81, 3.11,'dispatched'),
+      ('LOT-KER-260118-I9J0','Kericho Highlands, Kenya',     'MSCU8821044','standard','cardboard',28.4,3.40, 1.02, 4.42,'dispatched'),
+      ('LOT-TON-260124-K1L2','Tongmu Village, China',        'EGHU2210774','loose','tin',          2.1, 0.62, 0.48, 1.10,'dispatched'),
+      ('LOT-MAN-260203-M3N4','Mangalam Estate, Assam',       'HLXU4471002','standard','foil',     18.2,2.60, 0.92, 3.52,'dispatched'),
+      ('LOT-MAK-260210-O5P6','Makaibari Estate, India',      'MSKU3398170','pyramid','cardboard',  4.8, 0.94, 0.34, 1.28,'dispatched'),
+      ('LOT-UJI-260218-Q7R8','Ujidake Gardens, Japan',       'EGHU5512446','loose','tin',          1.6, 0.41, 0.36, 0.77,'dispatched'),
+      ('LOT-ANS-260301-S9T0','Anseong Green, South Korea',   'MSCU6620083','loose','cardboard',    2.4, 0.52, 0.22, 0.74,'dispatched'),
+      ('LOT-KER-260311-U1V2','Kericho Highlands, Kenya',     'HLXU9930221','standard','foil',     32.1,3.92, 1.18, 5.10,'dispatched'),
+      ('LOT-GLN-260322-W3X4','Glenburn Estate, India',       'MSKU4407110','pyramid','cardboard',  6.4, 1.30, 0.72, 2.02,'dispatched')
+    ) as t(id, estate_name, msku, packaging_format, packaging_material,
+           weight_t, co2_transport, co2_packaging, total_co2, status)
+  loop
+    -- 1. Lot header
+    insert into public.trace_lots
+      (id, importer_id, estate_name, status, stages_done)
+    values
+      (v_lot.id, p_user, v_lot.estate_name, v_lot.status,
+       array['origin','manufacture','bulk-pack','minted','dispatched']);
+
+    -- 2. Genesis 'minted' event — hash-chained from zero.
+    v_payload := jsonb_build_object(
+      'lot_id', v_lot.id,
+      'estate', v_lot.estate_name,
+      'msku', v_lot.msku,
+      'packaging_format', v_lot.packaging_format,
+      'packaging_material', v_lot.packaging_material,
+      'weight_t', v_lot.weight_t,
+      'co2_transport', v_lot.co2_transport,
+      'co2_packaging', v_lot.co2_packaging,
+      'total_co2', v_lot.total_co2
+    );
+    v_hash := '0x' || encode(
+      digest(
+        '0x0000000000000000000000000000000000000000000000000000000000000000' ||
+        v_payload::text || now()::text,
+        'sha256'
+      ),
+      'hex'
+    );
+
+    insert into public.trace_lot_events
+      (lot_id, importer_id, block_height, type, payload, prev_hash, hash)
+    values
+      (v_lot.id, p_user, 1, 'minted', v_payload,
+       '0x0000000000000000000000000000000000000000000000000000000000000000',
+       v_hash);
+  end loop;
 end;
 $$;
 

@@ -4,6 +4,20 @@
 -- product cleanly separated from teatrade.co.uk and shipping.teatrade.co.uk
 -- while still benefiting from a single auth.users table (SSO).
 -- =====================================================================
+--
+-- ⚠️  LEGACY / SUPERSEDED — DO NOT RUN ON A FRESH PROJECT
+-- ---------------------------------------------------------------------
+-- This file is preserved for historical reference. The active schema is
+-- now defined in `trace_lots_migration.sql`, which models lots as a
+-- proper hash-chained ledger (`trace_lots` + `trace_lot_events`).
+--
+-- For a NEW Supabase project, run only:
+--     1. trace_lots_migration.sql   (creates the live schema + RPC)
+--     2. trace_seed_admin.sql       (admin flag + demo seed)
+--
+-- The `trace_batches` table this file creates is retained as a
+-- backwards-compat shim only — new code should not target it.
+-- =====================================================================
 
 -- ---------- 1. EXTENSIONS ---------------------------------------------
 create extension if not exists "pgcrypto";
