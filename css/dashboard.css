@@ -2435,6 +2435,21 @@ body.audit-page {
   font-size: 11px; color: var(--text); background: #f3f5f9;
   padding: 4px 8px; border-radius: 6px; word-break: break-all; max-width: 320px;
 }
+.audit-lot__refs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px 16px; margin: 0 0 14px; padding: 12px 14px;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 10px;
+}
+.audit-lot__refs > div { min-width: 0; }
+.audit-lot__refs dt {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--muted); margin: 0 0 2px;
+}
+.audit-lot__refs dd {
+  margin: 0; font-size: 13px; font-weight: 600; color: var(--text);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  word-break: break-all;
+}
 .audit-lot__timeline {
   list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 0;

@@ -175,6 +175,22 @@
     var e = D.estateById(b.estate);
     var co2 = b.co2 == null ? (b.weight * 0.22) : b.co2;
     var events = D.timelineFor(b.id);
+    /* Container / shipping references — pulled from the batch.
+       Auditors use these to cross-check customs and carrier records
+       against our ledger. */
+    var containerRef = (b.id || '').replace(/^TT-/, '').replace(/·.*/, '') || '—';
+    var refs = [
+      { label: 'Container', value: containerRef },
+      { label: 'Vessel',    value: b.vessel || '—' },
+      { label: 'Carrier',   value: (b.carrier || '—').toUpperCase() },
+      { label: 'ETA',       value: b.eta ? fmtDate(b.eta) : '—' }
+    ];
+    var refsHtml = '<dl class="audit-lot__refs">' +
+      refs.map(function (r) {
+        return '<div><dt>' + r.label + '</dt><dd>' + esc(r.value) + '</dd></div>';
+      }).join('') +
+      '</dl>';
+
     return '<article class="audit-lot">' +
       '<header class="audit-lot__head">' +
         '<div>' +
@@ -187,6 +203,7 @@
           '<code>' + (b.hash || '—') + '</code>' +
         '</div>' +
       '</header>' +
+      refsHtml +
       '<ol class="audit-lot__timeline">' +
         events.map(function (ev) {
           return '<li class="audit-lot__event audit-lot__event--' + esc(ev.type) + '">' +
