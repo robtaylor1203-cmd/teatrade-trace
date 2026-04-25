@@ -88,6 +88,24 @@
 
       <form id="newLotForm" class="tt-form" novalidate>
 
+        <!-- Mode toggle: fresh lot vs continue existing chain -->
+        <div class="wizard-mode" id="lwMode" role="tablist" aria-label="Lot mode">
+          <button type="button" class="wizard-mode__btn is-active" data-mode="new" role="tab" aria-selected="true">+ New lot</button>
+          <button type="button" class="wizard-mode__btn"           data-mode="continue" role="tab" aria-selected="false">↻ Continue existing</button>
+        </div>
+
+        <!-- Continue picker (visible when mode = continue) -->
+        <section class="wizard-continue" id="lwContinue" hidden>
+          <label class="tt-form__field">
+            <span class="tt-form__label">Existing lot</span>
+            <select name="continueLot" id="lwContinueLot">
+              <option value="">Select a lot to resume…</option>
+            </select>
+            <span class="tt-form__hint">The wizard will load the chain so far and jump to the next pending stage.</span>
+          </label>
+          <div class="wizard-chain" id="lwChainPreview" hidden></div>
+        </section>
+
         <!-- STEP 1 · Origin -->
         <section class="wizard-pane" data-pane="1">
           <label class="tt-form__field">
@@ -231,6 +249,9 @@
 
             <ul class="wizard-breakdown" id="lwBreakdown"></ul>
 
+            <h4 class="wizard-chain__title">On-chain history</h4>
+            <ol class="wizard-chain" id="lwChainHistory"></ol>
+
             <p class="tt-form__hint" style="margin:14px 0 18px;">
               Methodology: GHG-Protocol Scope 3 · Cat. 1, 4, 9 &amp; 11.
               Multipliers from DEFRA 2026 conversion factors (mock).
@@ -258,6 +279,7 @@
   <script src="./js/data.js"></script>
   <script src="./js/chrome.js"></script>
   <script src="./js/map.js"></script>
+  <script src="./js/ledger.js"></script>
   <script src="./js/estates.js" defer></script>
   <script src="./js/lot-wizard.js" defer></script>
 </body>

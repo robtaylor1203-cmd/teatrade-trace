@@ -1747,3 +1747,72 @@ html[data-theme="dark"] .wizard-stepper li { background: #10141b; border-color: 
 html[data-theme="dark"] .wizard-stepper li.is-active { background: rgba(26,115,232,.16); border-color: rgba(26,115,232,.55); }
 html[data-theme="dark"] .wizard-mint { background: #10141b; border-color: #252a34; }
 html[data-theme="dark"] .wizard-mint__qr { background: #fff; }
+
+
+/* =====================================================================
+   Lot Wizard · mode toggle (new vs continue)
+   ===================================================================== */
+.wizard-mode {
+  display: inline-flex; gap: 4px; padding: 4px;
+  margin: 0 0 14px;
+  background: var(--panel-2, #f6f7f9); border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.wizard-mode__btn {
+  appearance: none; background: transparent; border: 0;
+  padding: 7px 14px; border-radius: 7px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+  color: var(--muted); cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.wizard-mode__btn:hover { color: var(--text); }
+.wizard-mode__btn.is-active { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+.wizard-continue { margin-bottom: 14px; }
+.wizard-continue[hidden] { display: none; }
+
+/* =====================================================================
+   On-chain history timeline (used by lot wizard mint + dispatch picker)
+   ===================================================================== */
+.wizard-chain__title {
+  margin: 18px 0 8px; font-size: 13px; font-weight: 600;
+  color: var(--text); text-transform: uppercase; letter-spacing: .04em;
+}
+.wizard-chain {
+  list-style: none; margin: 0 0 12px; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.wizard-chain[hidden] { display: none; }
+.wizard-chain__item {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 8px;
+  background: var(--panel-2, #f6f7f9); border: 1px solid var(--border);
+  font-size: 12px;
+}
+.wizard-chain__block {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--muted); min-width: 28px;
+}
+.wizard-chain__type {
+  font-weight: 600; color: var(--text); text-transform: capitalize;
+}
+.wizard-chain__ts {
+  color: var(--muted); font-size: 11px; font-family: var(--font-mono);
+}
+.wizard-chain__hash {
+  font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+  background: rgba(26,115,232,.08); padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap;
+}
+.wizard-chain__empty {
+  list-style: none; padding: 10px; color: var(--muted); font-size: 12px;
+  background: var(--panel-2, #f6f7f9); border: 1px dashed var(--border); border-radius: 8px;
+}
+
+html[data-theme="dark"] .wizard-mode { background: #10141b; border-color: #252a34; }
+html[data-theme="dark"] .wizard-mode__btn.is-active { background: #1a1f29; }
+html[data-theme="dark"] .wizard-chain__item { background: #10141b; border-color: #252a34; }
+html[data-theme="dark"] .wizard-chain__hash { background: rgba(26,115,232,.18); }
+html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color: #252a34; }

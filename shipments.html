@@ -76,7 +76,10 @@
         <label class="tt-form__field">
           <span class="tt-form__label">Lot</span>
           <select name="lot" id="dpLot" required></select>
+          <span class="tt-form__hint">Open lots from your ledger appear first.</span>
         </label>
+
+        <div class="wizard-chain" id="dpChainPreview" hidden></div>
 
         <label class="tt-form__field">
           <span class="tt-form__label">Carrier tracking number (MSKU)</span>
@@ -122,6 +125,7 @@
   <script src="./js/data.js"></script>
   <script src="./js/chrome.js"></script>
   <script src="./js/map.js"></script>
+  <script src="./js/ledger.js"></script>
   <script src="./js/shipments.js" defer></script>
 </body>
 </html>

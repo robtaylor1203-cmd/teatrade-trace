@@ -274,31 +274,84 @@
   });
 
   /* =====================================================================
-     Dispatch Lot · attach a shipping manifest to an existing lot
+     Dispatch Lot · attach a shipping manifest to an existing lot,
+     appending a "dispatched" event to that lot's chain.
      ===================================================================== */
   var dispatchEl     = document.getElementById('dispatchModal');
   var dispatchClose  = document.getElementById('dispatchClose');
   var dispatchCancel = document.getElementById('dispatchCancel');
   var dispatchForm   = document.getElementById('dispatchForm');
   var dpLot          = document.getElementById('dpLot');
+  var dpChain        = document.getElementById('dpChainPreview');
 
-  /* Lots eligible for dispatch — anything that's been manufactured but
-     not yet attached to a vessel. We approximate from the existing
-     batches dataset for the demo. */
   function refreshLotOptions() {
-    var lots = D.batches.filter(function (b) {
+    /* prefer real ledger lots — they carry an actual chain */
+    var ledgerLots = (window.TTLedger && TTLedger.list) ? TTLedger.list() : [];
+    var openLots = ledgerLots.filter(function (l) {
+      return l.status !== 'closed' && (l.stagesDone || []).indexOf('dispatched') === -1;
+    });
+    var html = '<option value="">Select lot…</option>';
+    if (openLots.length) {
+      html += '<optgroup label="Open lots (your ledger)">' +
+        openLots.map(function (l) {
+          var head = TTLedger.head(l.id);
+          var lastStage = head ? head.type : 'origin';
+          return '<option value="' + l.id + '" data-source="ledger">' +
+                   l.id + ' · ' + (l.estateName || '—') + ' · last: ' + lastStage +
+                 '</option>';
+        }).join('') +
+        '</optgroup>';
+    }
+    /* fallback: legacy demo batches without a real chain */
+    var legacy = D.batches.filter(function (b) {
       return b.status === 'manufactured' || b.status === 'pending' || b.status === 'transit';
     });
-    dpLot.innerHTML = '<option value="">Select lot…</option>' +
-      lots.map(function (b) {
-        var e = D.estateById(b.estate);
-        return '<option value="' + b.id + '">' + b.id + ' · ' + e.name + ' · ' + b.weight + 't</option>';
-      }).join('');
+    if (legacy.length) {
+      html += '<optgroup label="Demo batches">' +
+        legacy.map(function (b) {
+          var e = D.estateById(b.estate);
+          return '<option value="' + b.id + '" data-source="demo">' +
+                   b.id + ' · ' + e.name + ' · ' + b.weight + 't' +
+                 '</option>';
+        }).join('') +
+        '</optgroup>';
+    }
+    dpLot.innerHTML = html;
+  }
+
+  /* Render chain preview when user picks a lot */
+  dpLot.addEventListener('change', function () {
+    var opt = dpLot.options[dpLot.selectedIndex];
+    var src = opt && opt.dataset ? opt.dataset.source : null;
+    if (src === 'ledger' && window.TTLedger) {
+      var evts = TTLedger.events(dpLot.value);
+      dpChain.hidden = false;
+      dpChain.innerHTML = renderChain(evts);
+    } else {
+      dpChain.hidden = true;
+      dpChain.innerHTML = '';
+    }
+  });
+
+  function renderChain(events) {
+    if (!events || !events.length) return '<li class="wizard-chain__empty">No events on chain yet.</li>';
+    return events.map(function (e) {
+      var ts = (e.ts || '').replace('T',' ').replace(/\..+$/,'') + ' UTC';
+      var hashShort = (e.hash || '').slice(0,10) + '…' + (e.hash || '').slice(-4);
+      return '<li class="wizard-chain__item">' +
+        '<span class="wizard-chain__block">#' + e.blockHeight + '</span>' +
+        '<span class="wizard-chain__type">' + e.type + '</span>' +
+        '<span class="wizard-chain__ts">' + ts + '</span>' +
+        '<code class="wizard-chain__hash" title="' + e.hash + '">' + hashShort + '</code>' +
+      '</li>';
+    }).join('');
   }
 
   function openDispatch() {
     refreshLotOptions();
     dispatchForm.reset();
+    dpChain.hidden = true;
+    dpChain.innerHTML = '';
     dispatchEl.classList.add('is-open');
     dispatchEl.setAttribute('aria-hidden', 'false');
     setTimeout(function () { dpLot.focus(); }, 60);
@@ -318,18 +371,30 @@
     if (e.key === 'Escape' && dispatchEl.classList.contains('is-open')) closeDispatch();
   });
 
-  dispatchForm.addEventListener('submit', function (e) {
+  dispatchForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!dispatchForm.reportValidity()) return;
-    var data = new FormData(dispatchForm);
-    /* For the demo this is a no-op success — when the schema migration
-       lands we'll write a `dispatched` event row to trace_lot_events. */
-    console.log('[dispatch]', {
-      lot:    data.get('lot'),
+    var data   = new FormData(dispatchForm);
+    var lotId  = data.get('lot');
+    var opt    = dpLot.options[dpLot.selectedIndex];
+    var source = opt && opt.dataset ? opt.dataset.source : null;
+
+    var payload = {
       msku:   data.get('msku'),
       vessel: data.get('vessel'),
       eta:    data.get('eta')
-    });
+    };
+
+    if (source === 'ledger' && window.TTLedger) {
+      try {
+        var evt = await TTLedger.append(lotId, 'dispatched', payload);
+        console.info('[dispatched]', lotId, '→ block #' + evt.blockHeight, evt.hash);
+      } catch (err) {
+        console.error('[dispatch chain failed]', err);
+      }
+    } else {
+      console.log('[dispatch · demo batch]', lotId, payload);
+    }
     closeDispatch();
   });
 })();
