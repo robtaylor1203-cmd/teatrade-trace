@@ -370,6 +370,23 @@ body.trace-page {
 
 /* Welcome */
 .welcome-bar { display: flex; flex-direction: column; gap: 24px; margin-bottom: 24px; }
+.welcome-bar__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.welcome-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .welcome-bar__actions { width: 100%; }
+  .welcome-bar__actions .btn { flex: 1; justify-content: center; }
+}
 .eyebrow {
   margin: 0 0 8px;
   font-size: 12px; font-weight: 500;

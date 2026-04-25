@@ -248,8 +248,12 @@
 
   /* Open from URL hash (linked from omni-search or dashboard) */
   if (location.hash) {
-    var id = decodeURIComponent(location.hash.substring(1));
-    setTimeout(function () { openDrawer(id); }, 200);
+    var hash = decodeURIComponent(location.hash.substring(1));
+    if (hash === 'new-batch') {
+      setTimeout(function () { openWizard(); }, 200);
+    } else {
+      setTimeout(function () { openDrawer(hash); }, 200);
+    }
   }
 
   /* ---------------------------- CSV export --------------------- */
