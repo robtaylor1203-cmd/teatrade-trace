@@ -127,6 +127,7 @@
       var c = D.carrierById(b.carrier);
       var co2 = b.co2 == null ? '<span class="muted-text">calculating…</span>' : '<strong>' + b.co2.toFixed(2) + ' tCO₂e</strong>';
       return '<article class="shipment-card" data-id="' + b.id + '">' +
+        '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + b.id + '" data-qr-label="' + e.name + ' · ' + b.vessel + '" title="Generate Tea Passport QR">QR</button>' +
         '<div>' +
           '<div class="shipment-card__head">' +
             '<code class="batch-id">' + b.id + '</code>' +

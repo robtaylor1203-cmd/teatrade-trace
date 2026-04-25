@@ -46,6 +46,7 @@
     grid.innerHTML = items.map(function (e) {
       var certs = e.cert.map(function (c) { return '<span>' + c + '</span>'; }).join('');
       return '<article class="estate-card" id="' + e.id + '">' +
+        '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + e.id + '" data-qr-label="' + e.name + ' · ' + e.region + '" title="Generate Tea Passport QR">QR</button>' +
         '<span class="estate-card__flag">' + e.country + '</span>' +
         '<div>' +
           '<h3 class="estate-card__title">' + e.name + '</h3>' +

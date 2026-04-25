@@ -1979,3 +1979,89 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
   .passport-step__row, .passport-step__hash { grid-template-columns: 84px 1fr; }
   .passport-chain__row { grid-template-columns: 44px 90px 1fr 28px; }
 }
+
+
+/* =====================================================================
+   Card pill button (Generate QR / actions on cards)
+   ===================================================================== */
+.estate-card { position: relative; }
+.shipment-card { position: relative; }
+.cert-card { position: relative; }
+
+.card-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 11px; font-size: 12px; font-weight: 500;
+  background: #fff; color: var(--accent);
+  border: 1px solid var(--border); border-radius: 999px;
+  cursor: pointer; transition: all .15s;
+  font-family: inherit; line-height: 1;
+}
+.card-pill:hover { background: var(--accent-soft); border-color: var(--accent); }
+.card-pill:active { transform: scale(0.97); }
+.card-pill--qr::before { content: '?'; font-size: 13px; line-height: 1; }
+
+/* Top-right corner placement on cards */
+.estate-card .card-pill,
+.shipment-card .card-pill,
+.cert-card .card-pill {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+}
+
+html[data-theme="dark"] .card-pill { background: #1a1f29; border-color: #252a34; color: var(--accent-hi, #3b8cff); }
+html[data-theme="dark"] .card-pill:hover { background: rgba(59,140,255,.12); }
+
+/* =====================================================================
+   QR / Tea Passport modal
+   ===================================================================== */
+.qr-modal {
+  position: fixed; inset: 0; z-index: 1200;
+  display: none; align-items: center; justify-content: center;
+}
+.qr-modal.is-open { display: flex; }
+.qr-modal__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(15,23,42,.55);
+  backdrop-filter: blur(2px);
+}
+.qr-modal__panel {
+  position: relative; z-index: 1; width: min(92vw, 440px);
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 28px 22px;
+  box-shadow: 0 24px 64px rgba(15,23,42,.28);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.qr-modal__close {
+  position: absolute; top: 10px; right: 12px;
+  width: 30px; height: 30px; border: 0; border-radius: 50%;
+  background: transparent; color: var(--muted);
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.qr-modal__close:hover { background: var(--border); color: var(--text); }
+.qr-modal__title {
+  margin: 0; font-size: 16px; letter-spacing: .04em;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  word-break: break-all;
+}
+.qr-modal__sub { margin: 0; color: var(--muted); font-size: 13px; }
+.qr-modal__qr {
+  margin: 8px auto 4px; padding: 14px;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 220px; min-width: 220px;
+}
+.qr-modal__qr svg { width: 196px; height: 196px; display: block; }
+.qr-modal__loading { color: var(--muted); font-size: 13px; }
+.qr-modal__url-row { display: flex; gap: 8px; }
+.qr-modal__url {
+  flex: 1; padding: 9px 12px; font-size: 12px;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--text);
+}
+.qr-modal__copy { white-space: nowrap; }
+.qr-modal__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.qr-modal__actions .btn { flex: 1; min-width: 130px; text-align: center; text-decoration: none; }
+.qr-modal__foot { margin: 4px 0 0; font-size: 12px; color: var(--muted); text-align: center; min-height: 16px; }
+
+html[data-theme="dark"] .qr-modal__panel { background: #10141b; border-color: #252a34; }
+html[data-theme="dark"] .qr-modal__qr { background: #fff; }
+html[data-theme="dark"] .qr-modal__url { background: #1a1f29; border-color: #252a34; }

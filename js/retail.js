@@ -27,6 +27,7 @@
 
   document.getElementById('orderGrid').innerHTML = R.map(function (r) {
     return '<article class="estate-card" id="' + r.id + '">' +
+      '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + r.id + '" data-qr-label="' + r.retailer + ' · ' + r.sku + '" title="Generate Tea Passport QR">QR</button>' +
       '<span class="estate-card__flag">' + r.channel + '</span>' +
       '<header>' +
         '<h3 class="estate-card__title">' + r.retailer + '</h3>' +

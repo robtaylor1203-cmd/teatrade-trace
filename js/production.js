@@ -25,6 +25,7 @@
       b.lots.map(function (id) { return '<code class="batch-id">' + id + '</code>'; }).join(' ') :
       '<span class="muted-text">No lots assigned</span>';
     return '<article class="estate-card" id="' + b.id + '">' +
+      '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + b.id + '" data-qr-label="' + b.name + '" title="Generate Tea Passport QR">QR</button>' +
       '<span class="estate-card__flag">' + b.sku + '</span>' +
       '<header>' +
         '<h3 class="estate-card__title">' + b.name + '</h3>' +

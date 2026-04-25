@@ -21,6 +21,7 @@
       return '<code class="batch-id">' + b + '</code>';
     }).join(' ');
     return '<article class="estate-card" id="' + w.id + '">' +
+      '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + w.id + '" data-qr-label="' + w.name + ' · ' + w.city + '" title="Generate Tea Passport QR">QR</button>' +
       '<span class="estate-card__flag">' + w.country + '</span>' +
       '<header>' +
         '<h3 class="estate-card__title">' + w.name + '</h3>' +

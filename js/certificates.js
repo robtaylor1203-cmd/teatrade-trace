@@ -33,6 +33,7 @@
   var grid = document.getElementById('certGrid');
   grid.innerHTML = certs.map(function (c) {
     return '<article class="cert-card" data-serial="' + c.serial + '">' +
+      '<button class="card-pill card-pill--qr" type="button" data-qr-id="' + (c.batch || c.serial) + '" data-qr-label="' + c.estate + '" title="Re-open Tea Passport QR">QR</button>' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">' +
         '<div>' +
           '<p class="eyebrow" style="margin:0 0 6px;">Certificate · Verified</p>' +
