@@ -81,18 +81,8 @@
       '<nav class="secondary-nav" aria-label="Trace navigation"><ul>' + navHTML + '</ul></nav>' +
     '</header>';
 
-  /* breadcrumb strip (hidden on dashboard) */
+  /* breadcrumb strip removed */
   var crumbHTML = '';
-  if (page !== 'dashboard') {
-    crumbHTML =
-      '<div class="breadcrumbs">' +
-        '<div class="breadcrumbs__inner">' +
-          '<a href="./index.html">Trace</a>' +
-          '<span class="breadcrumbs__sep">›</span>' +
-          '<span class="breadcrumbs__current">' + (crumb || NAV.find(function(n){return n.key===page;}).label) + '</span>' +
-        '</div>' +
-      '</div>';
-  }
 
   /* omni modal */
   var omniHTML =
@@ -280,8 +270,8 @@
       body:  '<p><strong>Trace</strong> is the enterprise subdomain of TeaTrade — an automated, blockchain-backed Crop-to-Cup supply chain and Scope 3 carbon tracking ledger for tea importers, blenders, and brand owners.</p><p>We connect estate-level primary data, carrier telemetry, and customs events into a single verifiable provenance record that ends as a consumer-scannable QR certificate.</p><ul><li>Real-time ledger across 40+ origin estates</li><li>Scope 3 Category 1 &amp; 4 methodology, GHG-Protocol aligned</li><li>EVM-compatible public ledger with finality &lt; 8s</li></ul>'
     },
     contact: {
-      title: 'Contact',
-      body:  '<p>Talk to the team:</p><ul><li>Enterprise sales — <a href="mailto:trace@teatrade.co.uk">trace@teatrade.co.uk</a></li><li>API support — <a href="mailto:devs@teatrade.co.uk">devs@teatrade.co.uk</a></li><li>Press — <a href="mailto:press@teatrade.co.uk">press@teatrade.co.uk</a></li></ul><p>TeaTrade Ltd · London, UK.</p>'
+      title: 'Contact Us',
+      body:  '<p>For enterprise inquiries, API access, or to speak with the TeaTrade Trace team, please reach out.</p><p>Email: <a href="mailto:contact@teatrade.co.uk">contact@teatrade.co.uk</a></p>'
     },
     privacy: {
       title: 'Privacy &amp; Disclosure',

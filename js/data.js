@@ -72,10 +72,10 @@ window.TTData = (function () {
   function carbonBreakdown() {
     return [
       { label: 'Sea freight',          pct: 62, t: 255, color: '#1a73e8' },
-      { label: 'Cultivation + factory', pct: 18, t: 74,  color: '#1e8e3e' },
-      { label: 'Inland trucking',       pct: 11, t: 45,  color: '#ea8500' },
-      { label: 'Packaging',             pct: 6,  t: 25,  color: '#8e44ad' },
-      { label: 'Warehousing (UK)',      pct: 3,  t: 13,  color: '#5f6368' }
+      { label: 'Cultivation + factory', pct: 18, t: 74,  color: '#1a73e8' },
+      { label: 'Inland trucking',       pct: 11, t: 45,  color: '#1a73e8' },
+      { label: 'Packaging',             pct: 6,  t: 25,  color: '#1a73e8' },
+      { label: 'Warehousing (UK)',      pct: 3,  t: 13,  color: '#1a73e8' }
     ];
   }
 

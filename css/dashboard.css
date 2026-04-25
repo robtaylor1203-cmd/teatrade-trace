@@ -43,6 +43,7 @@ body.trace-page {
   font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg);
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100vh;
@@ -562,7 +563,7 @@ body.trace-page {
 
 /* Action panel */
 .bento-card--action {
-  background: radial-gradient(600px 260px at 100% 0%, var(--accent-soft), transparent 70%), var(--panel);
+  background: var(--panel);
 }
 .action-panel { flex: 1; display: flex; flex-direction: column; position: relative; }
 .action-panel__view { display: flex; flex-direction: column; gap: 18px; animation: fadeUp .4s var(--ease); }
@@ -916,7 +917,7 @@ html[data-theme="dark"] .cert-preview,
 html[data-theme="dark"] .endpoint-row { background: #10141b; }
 html[data-theme="dark"] .carbon-bar__track { background: #1a1f28; }
 html[data-theme="dark"] .bento-card--action {
-  background: radial-gradient(600px 260px at 100% 0%, rgba(59,140,255,.10), transparent 70%), var(--panel);
+  background: var(--panel);
 }
 
 /* =====================================================================
@@ -950,7 +951,7 @@ html[data-theme="dark"] .bento-card--action {
   font-size: 28px; font-weight: 500; letter-spacing: -0.5px;
   color: var(--text);
 }
-.page-hero__sub { margin: 0; color: var(--muted); font-size: 14px; max-width: 640px; }
+.page-hero__sub { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 640px; }
 .page-hero__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .sub-kpis {
@@ -1265,8 +1266,8 @@ html[data-theme="dark"] .drawer__close:hover { background: #1a1f28; color: #e5e7
   align-items: center; font-size: 13px;
 }
 .breakdown-row__label { color: var(--text); font-weight: 500; }
-.carbon-bar__track { width: 100%; height: 8px; border-radius: 999px; background: #eceff4; overflow: hidden; }
-.carbon-bar__fill  { height: 100%; border-radius: 999px; transition: width .8s var(--ease); }
+.carbon-bar__track { display: block; width: 100%; height: 10px; border-radius: 999px; background: #eceff4; overflow: hidden; }
+.carbon-bar__fill  { display: block; height: 100%; width: 0; border-radius: 999px; transition: width .8s var(--ease); }
 .breakdown-row__value { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; min-width: 70px; text-align: right; }
 .breakdown-row__pct   { color: var(--muted); min-width: 40px; text-align: right; }
 
