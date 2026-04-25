@@ -1926,31 +1926,30 @@ html[data-theme="dark"] .wizard-chain__empty { background: #10141b; border-color
 }
 
 /* Timeline */
-.passport-timeline { list-style: none; padding: 0; margin: 0; }
+.passport-timeline {
+  list-style: none; padding: 0; margin: 0;
+  position: relative;
+}
+.passport-timeline::before {
+  content: ''; position: absolute;
+  left: 21px; top: 42px; bottom: 42px;
+  width: 2px; background: var(--border);
+}
 .passport-step {
   position: relative; display: grid; grid-template-columns: 44px 1fr;
   gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border);
 }
 .passport-step:last-child { border-bottom: 0; }
-.passport-step::before {
-  content: ''; position: absolute; left: 21px; top: 56px; bottom: -10px;
-  width: 2px; background: var(--border);
-}
-.passport-step:last-child::before { display: none; }
 .passport-step__icon {
   width: 44px; height: 44px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  flex-shrink: 0; position: relative; z-index: 1;
 }
-.passport-step__icon svg { width: 22px; height: 22px; }
+.passport-step__icon svg { width: 22px; height: 22px; display: block; }
 .passport-step--estate .passport-step__icon { background: var(--phase-estate-soft); color: var(--phase-estate); }
 .passport-step--prod   .passport-step__icon { background: var(--phase-prod-soft);   color: var(--phase-prod); }
 .passport-step--ship   .passport-step__icon { background: var(--phase-ship-soft);   color: var(--phase-ship); }
 .passport-step--retail .passport-step__icon { background: var(--phase-retail-soft); color: var(--phase-retail); }
-.passport-step--estate::before { background: var(--phase-estate-soft); }
-.passport-step--prod::before   { background: var(--phase-prod-soft); }
-.passport-step--ship::before   { background: var(--phase-ship-soft); }
-.passport-step--retail::before { background: var(--phase-retail-soft); }
 
 .passport-step__phase {
   display: inline-block; font-size: 10px; font-weight: 600;
