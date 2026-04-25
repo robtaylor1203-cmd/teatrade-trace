@@ -155,15 +155,31 @@ window.TTData = (function () {
       }
     },
 
-    /* --- Packaging (Cat 1 · purchased goods) -------------------------- */
-    /* Format = how the leaf is presented (drives material throughput).
-       Material = the primary outer packaging the consumer receives.     */
+    /* --- Tea form (Cat 1 · raw bulk processing energy) ----------------
+       Factor scales the cultivation+factory energy intensity based on
+       the form the leaf leaves the estate in.                            */
     packagingFormat: {
+      'whole-leaf':  { factor: 0.85, label: 'Whole Leaf · Orthodox', note: 'Hand-plucked · withered · rolled' },
+      'broken-leaf': { factor: 0.95, label: 'Broken Leaf',           note: 'Orthodox · sorted' },
+      'fannings':    { factor: 1.05, label: 'Fannings',              note: 'Cut grade · sieved' },
+      'dust':        { factor: 1.10, label: 'Dust',                  note: 'Finest cut grade' },
+      'ctc':         { factor: 1.20, label: 'CTC',                   note: 'Crush · tear · curl · diesel-heavy' },
+      'green-loose': { factor: 0.78, label: 'Green · Loose Leaf',    note: 'Pan-fired or steamed' },
+      'other':       { factor: 1.00, label: 'Custom form',           note: 'User-defined · DEFRA average' },
+      /* Legacy keys kept so historic batches still resolve */
       pyramid:  { factor: 1.35, label: 'Pyramid Teabags',  note: 'PLA mesh + string + tag' },
       standard: { factor: 1.00, label: 'Standard Teabags', note: 'Filter paper, stapled' },
       loose:    { factor: 0.55, label: 'Loose Leaf',       note: 'No individual unit pack' }
     },
+    /* --- Bulk shipping packaging (Cat 1 · transport packaging) -------- */
     packagingMaterial: {
+      'paper-sack': { factor: 0.85, kgPerTonne:  18, label: 'Paper Sack',        note: 'Multi-wall kraft, food-grade liner' },
+      'foil-sack':  { factor: 1.10, kgPerTonne:  26, label: 'Foil-Lined Sack',   note: 'PET/Al laminate' },
+      'jute-sack':  { factor: 0.55, kgPerTonne:  14, label: 'Jute Sack',         note: 'Renewable bast fibre' },
+      'tea-chest':  { factor: 1.40, kgPerTonne:  90, label: 'Wooden Tea Chest',  note: 'Plywood + foil liner' },
+      'bulk-bin':   { factor: 0.95, kgPerTonne:  42, label: 'Bulk Bin / IBC',    note: 'Reusable food-grade bin' },
+      'other':      { factor: 1.00, kgPerTonne:  35, label: 'Custom packaging',  note: 'User-defined · DEFRA average' },
+      /* Legacy keys kept so historic batches still resolve */
       cardboard: { factor: 1.00, kgPerTonne: 240, label: 'Cardboard',  note: 'FSC-certified carton' },
       foil:      { factor: 1.45, kgPerTonne: 360, label: 'Foil Pouch', note: 'PET/Al laminate' },
       tin:       { factor: 2.85, kgPerTonne: 720, label: 'Tin',        note: 'Tin-plated steel' }
@@ -205,6 +221,14 @@ window.TTData = (function () {
     /* ---- Packaging CO₂ (Cat 1) ---- */
     var fmt = f.packagingFormat[input.format]   || f.packagingFormat.standard;
     var mat = f.packagingMaterial[input.material] || f.packagingMaterial.cardboard;
+    /* If the user picked "Other…" the wizard supplies free-text labels;
+       we keep the engine factors but surface the user's wording. */
+    if (input.format === 'other' && input.formatLabel) {
+      fmt = Object.assign({}, fmt, { label: input.formatLabel });
+    }
+    if (input.material === 'other' && input.materialLabel) {
+      mat = Object.assign({}, mat, { label: input.materialLabel });
+    }
     var packagingKg = weight * mat.kgPerTonne * fmt.factor * mat.factor;
 
     var totalKg = transportKg + cultivationKg + packagingKg;

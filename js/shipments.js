@@ -295,9 +295,28 @@
       return '<option value="' + e.id + '">' + e.name + ' · ' + e.country + '</option>';
     }).join('');
 
+  /* "Other…" reveal — show free-text inputs only when needed */
+  var formatSelect      = document.getElementById('nbFormat');
+  var materialSelect    = document.getElementById('nbMaterial');
+  var formatOtherWrap   = document.getElementById('nbFormatOtherWrap');
+  var materialOtherWrap = document.getElementById('nbMaterialOtherWrap');
+  var formatOtherInput  = document.getElementById('nbFormatOther');
+  var materialOtherInput= document.getElementById('nbMaterialOther');
+
+  function syncOther(select, wrap, input) {
+    var isOther = select.value === 'other';
+    wrap.hidden = !isOther;
+    input.required = isOther;
+    if (!isOther) input.value = '';
+  }
+  formatSelect.addEventListener('change',   function () { syncOther(formatSelect,   formatOtherWrap,   formatOtherInput); });
+  materialSelect.addEventListener('change', function () { syncOther(materialSelect, materialOtherWrap, materialOtherInput); });
+
   function openWizard() {
     showStep('form');
     wizardForm.reset();
+    syncOther(formatSelect,   formatOtherWrap,   formatOtherInput);
+    syncOther(materialSelect, materialOtherWrap, materialOtherInput);
     document.getElementById('nbWeight').value = '8.0';
     wizardEl.classList.add('is-open');
     wizardEl.setAttribute('aria-hidden', 'false');
@@ -329,10 +348,12 @@
 
     var data = new FormData(wizardForm);
     var input = {
-      estateId: data.get('estate'),
-      weight:   data.get('weight'),
-      format:   data.get('format'),
-      material: data.get('material')
+      estateId:      data.get('estate'),
+      weight:        data.get('weight'),
+      format:        data.get('format'),
+      material:      data.get('material'),
+      formatLabel:   (data.get('formatOther')   || '').trim(),
+      materialLabel: (data.get('materialOther') || '').trim()
     };
     var msku  = data.get('container');
     var result = D.calculateScope3(input);
@@ -368,17 +389,19 @@
     var hash = '0x' + Math.random().toString(16).slice(2, 10) + '…';
 
     var insert = await sb.from('trace_batches').insert({
-      importer_id:        importer.id,
-      estate_name:        result.estate ? result.estate.name : 'Unknown',
-      msku:               msku,
-      packaging_format:   input.format,
-      packaging_material: input.material,
-      weight_t:           Number(input.weight),
-      co2_transport:      result.transportT,
-      co2_packaging:      result.packagingT,
-      total_co2:          result.totalT,
-      hash:               hash,
-      status:             'pending'
+      importer_id:              importer.id,
+      estate_name:              result.estate ? result.estate.name : 'Unknown',
+      msku:                     msku,
+      packaging_format:         input.format,
+      packaging_material:       input.material,
+      packaging_format_label:   input.format   === 'other' ? (input.formatLabel   || null) : null,
+      packaging_material_label: input.material === 'other' ? (input.materialLabel || null) : null,
+      weight_t:                 Number(input.weight),
+      co2_transport:            result.transportT,
+      co2_packaging:            result.packagingT,
+      total_co2:                result.totalT,
+      hash:                     hash,
+      status:                   'pending'
     }).select().single();
 
     if (insert.error) throw insert.error;

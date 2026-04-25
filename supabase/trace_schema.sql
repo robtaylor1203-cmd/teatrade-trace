@@ -50,8 +50,14 @@ create table if not exists public.trace_batches (
   importer_id         uuid not null references public.trace_importers(id) on delete cascade,
   estate_name         text not null,
   msku                text not null,
-  packaging_format    text not null check (packaging_format in ('pyramid','standard','loose')),
-  packaging_material  text not null check (packaging_material in ('cardboard','tin','foil')),
+  packaging_format    text not null check (packaging_format in (
+    'whole-leaf','broken-leaf','fannings','dust','ctc','green-loose','other',
+    'pyramid','standard','loose'
+  )),
+  packaging_material  text not null check (packaging_material in (
+    'paper-sack','foil-sack','jute-sack','tea-chest','bulk-bin','other',
+    'cardboard','tin','foil'
+  )),
   weight_t            numeric(8,2) not null check (weight_t > 0),
   co2_transport       numeric(10,3) not null default 0,
   co2_packaging       numeric(10,3) not null default 0,

@@ -71,7 +71,7 @@
         <p class="eyebrow" style="margin:0 0 6px;">Scope 3 · DEFRA 2026 Engine</p>
         <h3 id="newBatchTitle">File a <span class="accent">new batch</span></h3>
         <p style="margin:0 0 18px;color:var(--muted);font-size:13.5px;">
-          Origin, container, and packaging inputs are run through our DEFRA-aligned multipliers
+          Origin, container, tea form and bulk-shipping inputs are run through our DEFRA-aligned multipliers
           to produce a verifiable Scope 3 footprint at manifest time.
         </p>
 
@@ -91,25 +91,44 @@
 
           <div class="tt-form__row">
             <label class="tt-form__field">
-              <span class="tt-form__label">Packaging format</span>
+              <span class="tt-form__label">Tea form</span>
               <select name="format" id="nbFormat" required>
                 <option value="">Select…</option>
-                <option value="pyramid">Pyramid Teabags</option>
-                <option value="standard">Standard Teabags</option>
-                <option value="loose">Loose Leaf</option>
+                <option value="whole-leaf">Whole Leaf · Orthodox</option>
+                <option value="broken-leaf">Broken Leaf</option>
+                <option value="fannings">Fannings</option>
+                <option value="dust">Dust</option>
+                <option value="ctc">CTC (Crush · Tear · Curl)</option>
+                <option value="green-loose">Green · Loose Leaf</option>
+                <option value="other">Other…</option>
               </select>
             </label>
 
             <label class="tt-form__field">
-              <span class="tt-form__label">Primary packaging</span>
+              <span class="tt-form__label">Bulk shipping packaging</span>
               <select name="material" id="nbMaterial" required>
                 <option value="">Select…</option>
-                <option value="cardboard">Cardboard</option>
-                <option value="tin">Tin</option>
-                <option value="foil">Foil Pouch</option>
+                <option value="paper-sack">Paper Sack (multi-wall)</option>
+                <option value="foil-sack">Foil-Lined Sack</option>
+                <option value="jute-sack">Jute Sack</option>
+                <option value="tea-chest">Wooden Tea Chest</option>
+                <option value="bulk-bin">Bulk Bin / IBC</option>
+                <option value="other">Other…</option>
               </select>
             </label>
           </div>
+
+          <label class="tt-form__field" id="nbFormatOtherWrap" hidden>
+            <span class="tt-form__label">Specify tea form</span>
+            <input type="text" name="formatOther" id="nbFormatOther" maxlength="60"
+                   placeholder="e.g. Silver Needle · hand-rolled">
+          </label>
+
+          <label class="tt-form__field" id="nbMaterialOtherWrap" hidden>
+            <span class="tt-form__label">Specify bulk packaging</span>
+            <input type="text" name="materialOther" id="nbMaterialOther" maxlength="60"
+                   placeholder="e.g. Vacuum-sealed brick · 5 kg">
+          </label>
 
           <label class="tt-form__field">
             <span class="tt-form__label">Net weight (tonnes)</span>
