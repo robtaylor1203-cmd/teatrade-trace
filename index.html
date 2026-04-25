@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traceability Dashboard · TeaTrade Trace</title>
+  <meta name="description" content="Crop-to-Cup supply chain & Scope 3 carbon ledger for tea importers." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="dashboard" data-crumb="Dashboard">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+    <section class="welcome-bar">
+      <div class="welcome-bar__intro">
+        <p class="eyebrow">Importer Console · <span class="eyebrow__env">Production Ledger</span></p>
+        <h2 class="welcome-bar__title">Welcome back, <span class="accent-text">Pilot Importer Ltd</span></h2>
+        <p class="welcome-bar__subtitle">Real-time Crop-to-Cup provenance · Blockchain-verified · Scope 3 ready.</p>
+      </div>
+
+      <div class="kpi-row">
+        <article class="kpi-card">
+          <span class="kpi-card__label">Active Shipments</span>
+          <span class="kpi-card__value" data-counter="24">24</span>
+          <span class="kpi-card__delta kpi-card__delta--up">▲ 3 this week</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-card__label">Tons in Transit</span>
+          <span class="kpi-card__value" data-counter="186">186<small>t</small></span>
+          <span class="kpi-card__delta">Across 7 carriers</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-card__label">Scope 3 Carbon Tracked</span>
+          <span class="kpi-card__value">412<small>tCO₂e</small></span>
+          <span class="kpi-card__delta kpi-card__delta--verified"><span class="pulse-dot"></span> Ledger live</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-card__label">Certificates Minted</span>
+          <span class="kpi-card__value" data-counter="1284">1,284</span>
+          <span class="kpi-card__delta">YTD · On-chain</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="bento-grid-main">
+
+      <article class="bento-card bento-card--ledger">
+        <header class="bento-card__header">
+          <div>
+            <h3 class="bento-card__title">The Active Ledger</h3>
+            <p class="bento-card__meta">Incoming shipments · Auto-syncing with carrier APIs</p>
+          </div>
+          <div class="filter-pills" role="tablist" id="ledgerFilter">
+            <button class="pill pill--active" role="tab" aria-selected="true"  data-value="all">All</button>
+            <button class="pill"              role="tab" aria-selected="false" data-value="transit">In Transit</button>
+            <button class="pill"              role="tab" aria-selected="false" data-value="port">At Port</button>
+            <button class="pill"              role="tab" aria-selected="false" data-value="cleared">Cleared</button>
+          </div>
+        </header>
+
+        <div class="ledger-table-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>Batch ID</th>
+                <th>Origin Estate</th>
+                <th>Carrier Status</th>
+                <th>Carbon Footprint</th>
+                <th aria-label="Row actions"></th>
+              </tr>
+            </thead>
+            <tbody id="ledgerBody"></tbody>
+          </table>
+        </div>
+
+        <footer class="bento-card__footer">
+          <span class="muted-text" id="ledgerCount">Showing 5 of 12 active batches</span>
+          <a class="ghost-link" href="./shipments.html">View full ledger →</a>
+        </footer>
+      </article>
+
+      <aside class="bento-card bento-card--action">
+        <div class="action-panel" id="actionPanel" data-state="idle">
+          <div class="action-panel__view" data-view="idle">
+            <div class="action-panel__tag"><span class="pulse-dot pulse-dot--blue"></span> Action Required</div>
+            <h3 class="action-panel__title">Shipment has arrived at port.</h3>
+            <div class="action-panel__shipment">
+              <div class="shipment-meta"><span class="shipment-meta__label">Batch</span><code class="batch-id">TT-0x4C27·B118</code></div>
+              <div class="shipment-meta"><span class="shipment-meta__label">Origin</span><span>Satemwa · Malawi</span></div>
+              <div class="shipment-meta"><span class="shipment-meta__label">Port</span><span>Felixstowe, UK</span></div>
+              <div class="shipment-meta"><span class="shipment-meta__label">Weight</span><span>12.4 t · 248 chests</span></div>
+            </div>
+            <p class="action-panel__copy">Finalise provenance by writing the shipment hash to the public ledger and generating a consumer-facing QR certificate.</p>
+            <button class="btn btn--primary btn--glow" id="mintBtn" type="button">
+              <span class="btn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2l9 4.5v9L12 20l-9-4.5v-9L12 2zm0 2.2L5 7.5v7l7 3.5 7-3.5v-7l-7-3.3z" fill="currentColor"/><path d="M12 7.5l4.5 2.2v4.6L12 16.5l-4.5-2.2V9.7L12 7.5z" fill="currentColor" opacity=".55"/></svg></span>
+              Mint Provenance Certificate &amp; QR Code
+            </button>
+            <p class="action-panel__fine">Gas fee ≈ <strong>0.0012 ETH</strong> · Estimated confirmation &lt; 8s</p>
+          </div>
+          <div class="action-panel__view" data-view="loading" hidden>
+            <div class="terminal" role="status" aria-live="polite">
+              <div class="terminal__header">
+                <span class="terminal__dot"></span><span class="terminal__dot"></span><span class="terminal__dot"></span>
+                <span class="terminal__title">teatrade-ledger://mint</span>
+              </div>
+              <ol class="terminal__log" id="terminalLog"></ol>
+            </div>
+          </div>
+          <div class="action-panel__view" data-view="success" hidden>
+            <div class="success-burst" aria-hidden="true"></div>
+            <div class="success-header">
+              <svg class="success-check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-18"/></svg>
+              <h3 class="action-panel__title">Certificate minted on-chain.</h3>
+              <p class="action-panel__copy">Provenance hash <code class="hash-pill" id="hashPill">0x8f4a…c019</code> is now publicly verifiable.</p>
+            </div>
+            <div class="qr-frame">
+              <div class="qr-mock">
+                <div class="qr-mock__grid" id="qrGrid"></div>
+                <div class="qr-mock__corner qr-mock__corner--tl"></div>
+                <div class="qr-mock__corner qr-mock__corner--tr"></div>
+                <div class="qr-mock__corner qr-mock__corner--bl"></div>
+              </div>
+              <p class="qr-caption">Scan to trace Crop-to-Cup journey</p>
+            </div>
+            <div class="success-actions">
+              <button class="btn btn--primary" id="downloadBtn" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Download PDF
+              </button>
+              <button class="btn btn--ghost" id="resetBtn" type="button">Mint another</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <article class="bento-card bento-card--carbon">
+        <header class="bento-card__header">
+          <h3 class="bento-card__title bento-card__title--sm">Scope 3 Footprint · 30d</h3>
+          <span class="chip chip--verified">Verified</span>
+        </header>
+        <div class="sparkline">
+          <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+            <defs><linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#1a73e8" stop-opacity=".28"/><stop offset="100%" stop-color="#1a73e8" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,60 L20,54 L40,58 L60,48 L80,52 L100,40 L120,44 L140,32 L160,36 L180,28 L200,34 L220,22 L240,26 L260,18 L280,22 L300,14 L300,80 L0,80 Z" fill="url(#sparkFill)"/>
+            <path d="M0,60 L20,54 L40,58 L60,48 L80,52 L100,40 L120,44 L140,32 L160,36 L180,28 L200,34 L220,22 L240,26 L260,18 L280,22 L300,14" fill="none" stroke="#1a73e8" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="bento-card__footer bento-card__footer--split">
+          <div><span class="muted-text">This month</span><strong>412 tCO₂e</strong></div>
+          <div><span class="muted-text">vs. baseline</span><strong class="accent-green">−18%</strong></div>
+          <div><a href="./carbon.html" class="ghost-link">Deep dive →</a></div>
+        </div>
+      </article>
+
+      <article class="bento-card bento-card--chain">
+        <header class="bento-card__header">
+          <h3 class="bento-card__title bento-card__title--sm">Ledger Health</h3>
+          <span class="chip chip--live"><span class="pulse-dot"></span> Live</span>
+        </header>
+        <ul class="chain-stats">
+          <li><span>Block height</span><code>#18,402,119</code></li>
+          <li><span>Last write</span><code>4s ago</code></li>
+          <li><span>Finality</span><code>99.998%</code></li>
+          <li><span>Node region</span><code>eu-west-2</code></li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/dashboard.js" defer></script>
+</body>
+</html>

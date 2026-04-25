@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipments · TeaTrade Trace</title>
+  <meta name="description" content="Live shipment tracker — every batch in transit, at port, or cleared." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="shipments" data-crumb="Shipments">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Live Operations</p>
+        <h2 class="page-hero__title">Shipments</h2>
+        <p class="page-hero__sub">Every batch you have on the water, at port, or cleared into bonded warehouses — auto-syncing with carrier APIs and customs feeds.</p>
+      </div>
+      <div class="page-hero__actions">
+        <button class="btn btn--ghost" id="exportCsv">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export CSV
+        </button>
+        <button class="btn btn--primary" id="newBatchBtn">+ New Batch</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">In Transit</span><span class="sub-kpi__value" id="kpiTransit">—</span><span class="sub-kpi__delta">Currently moving</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">At Port</span><span class="sub-kpi__value" id="kpiPort">—</span><span class="sub-kpi__delta">Awaiting clearance</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Cleared (30d)</span><span class="sub-kpi__value" id="kpiCleared">—</span><span class="sub-kpi__delta sub-kpi__delta--good">▲ on track</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">At-Risk</span><span class="sub-kpi__value" id="kpiRisk">—</span><span class="sub-kpi__delta sub-kpi__delta--bad">Needs attention</span></div>
+    </div>
+
+    <h3 class="section-title">Live world view</h3>
+    <div id="shipmentMap" style="margin-bottom: 32px;"></div>
+
+    <div class="shipments-toolbar">
+      <div class="search-input">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" id="shipFilter" placeholder="Filter by batch, estate, vessel, hash…" />
+      </div>
+      <div class="filter-pills" id="statusFilter" role="tablist">
+        <button class="pill pill--active" data-value="all">All</button>
+        <button class="pill" data-value="transit">In Transit</button>
+        <button class="pill" data-value="port">At Port</button>
+        <button class="pill" data-value="cleared">Cleared</button>
+      </div>
+    </div>
+
+    <div id="shipmentList"></div>
+  </main>
+
+  <!-- Detail drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="shipmentDrawer" role="dialog" aria-modal="true" aria-hidden="true">
+    <header class="drawer__head">
+      <h2 class="drawer__title" id="drawerTitle">Shipment</h2>
+      <button class="drawer__close" id="drawerClose" aria-label="Close">×</button>
+    </header>
+    <div class="drawer__body" id="drawerBody"></div>
+  </aside>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/map.js"></script>
+  <script src="./js/shipments.js" defer></script>
+</body>
+</html>

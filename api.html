@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &amp; Webhooks · TeaTrade Trace</title>
+  <meta name="description" content="REST API and webhook reference for TeaTrade Trace." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="api" data-crumb="API &amp; Webhooks">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Developer Reference · v1</p>
+        <h2 class="page-hero__title">API &amp; Webhooks</h2>
+        <p class="page-hero__sub">REST &amp; webhook reference for the TeaTrade Trace ledger. Stable, signed, and fully OpenAPI-documented.</p>
+      </div>
+      <div class="page-hero__actions">
+        <button class="btn btn--ghost">OpenAPI 3.1</button>
+        <button class="btn btn--primary">Generate API key</button>
+      </div>
+    </section>
+
+    <div class="api-layout">
+
+      <aside class="api-side">
+        <h4 style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;">Reference</h4>
+        <a href="#auth"     class="api-side__link api-side__link--active">Authentication</a>
+        <a href="#endpoints" class="api-side__link">Endpoints</a>
+        <a href="#sample"   class="api-side__link">Code samples</a>
+        <a href="#webhooks" class="api-side__link">Webhooks</a>
+        <a href="#errors"   class="api-side__link">Errors</a>
+        <a href="#sdks"     class="api-side__link">SDKs</a>
+
+        <div style="margin-top:24px;padding:14px;border-radius:8px;background:rgba(26,115,232,0.08);font-size:13px;line-height:1.55;">
+          <strong style="color:var(--accent);">Base URL</strong><br>
+          <code style="font-family:var(--font-mono);font-size:12px;">https://api.teatrade.co.uk</code>
+        </div>
+      </aside>
+
+      <div>
+
+        <article class="api-card" id="auth">
+          <h3 class="section-title" style="margin-top:0;">Authentication</h3>
+          <p style="margin:0 0 14px;color:var(--muted);">Every request must carry a Bearer token. Tokens are issued per-organization and scoped to a fixed set of permissions.</p>
+          <pre class="code-block"><code><span class="c"># Authorization header on every request</span>
+<span class="k">Authorization:</span> <span class="s">Bearer tt_live_3f4a…29ba</span>
+<span class="k">Content-Type:</span> <span class="s">application/json</span></code><button class="code-copy" data-copy="auth">Copy</button></pre>
+        </article>
+
+        <article class="api-card" id="endpoints">
+          <h3 class="section-title" style="margin-top:0;">Endpoints</h3>
+          <div id="endpointList"></div>
+        </article>
+
+        <article class="api-card" id="sample">
+          <h3 class="section-title" style="margin-top:0;">Code samples</h3>
+          <p style="margin:0 0 14px;color:var(--muted);">Mint a batch and retrieve its certificate.</p>
+          <div class="filter-pills" id="langTabs" style="margin-bottom:12px;">
+            <button class="pill pill--active" data-value="curl">cURL</button>
+            <button class="pill" data-value="node">Node.js</button>
+            <button class="pill" data-value="py">Python</button>
+          </div>
+
+          <pre class="code-block" id="sampleCurl"><code><span class="k">curl</span> <span class="s">-X POST https://api.teatrade.co.uk/v1/batches/TT-0xa1b2c3d4/mint</span> <span class="\\">\</span>
+  <span class="k">-H</span> <span class="s">"Authorization: Bearer $TT_KEY"</span> <span class="\\">\</span>
+  <span class="k">-H</span> <span class="s">"Content-Type: application/json"</span> <span class="\\">\</span>
+  <span class="k">-d</span> <span class="s">'{ "anchor": true, "notify": ["audit@example.co.uk"] }'</span></code><button class="code-copy" data-copy="curl">Copy</button></pre>
+
+          <pre class="code-block" id="sampleNode" hidden><code><span class="k">import</span> <span class="n">{ TeaTrade }</span> <span class="k">from</span> <span class="s">'@teatrade/trace'</span><span class="c">;</span>
+
+<span class="k">const</span> <span class="n">tt</span> <span class="c">=</span> <span class="k">new</span> <span class="n">TeaTrade</span><span class="c">(</span><span class="n">process</span><span class="c">.</span><span class="n">env</span><span class="c">.</span><span class="n">TT_KEY</span><span class="c">);</span>
+
+<span class="k">const</span> <span class="n">cert</span> <span class="c">=</span> <span class="k">await</span> <span class="n">tt</span><span class="c">.</span><span class="n">batches</span><span class="c">.</span><span class="n">mint</span><span class="c">(</span><span class="s">'TT-0xa1b2c3d4'</span><span class="c">,</span> <span class="n">{</span> <span class="n">anchor</span><span class="c">:</span> <span class="n">true</span> <span class="n">}</span><span class="c">);</span>
+<span class="n">console</span><span class="c">.</span><span class="n">log</span><span class="c">(</span><span class="n">cert</span><span class="c">.</span><span class="n">serial</span><span class="c">);</span> <span class="c">// "TTC-2026004"</span></code><button class="code-copy" data-copy="node">Copy</button></pre>
+
+          <pre class="code-block" id="samplePy" hidden><code><span class="k">from</span> <span class="n">teatrade</span> <span class="k">import</span> <span class="n">TeaTrade</span>
+
+<span class="n">tt</span> <span class="c">=</span> <span class="n">TeaTrade</span><span class="c">(</span><span class="n">api_key</span><span class="c">=</span><span class="n">os</span><span class="c">.</span><span class="n">environ</span><span class="c">[</span><span class="s">"TT_KEY"</span><span class="c">])</span>
+
+<span class="n">cert</span> <span class="c">=</span> <span class="n">tt</span><span class="c">.</span><span class="n">batches</span><span class="c">.</span><span class="n">mint</span><span class="c">(</span><span class="s">"TT-0xa1b2c3d4"</span><span class="c">,</span> <span class="n">anchor</span><span class="c">=</span><span class="n">True</span><span class="c">)</span>
+<span class="k">print</span><span class="c">(</span><span class="n">cert</span><span class="c">.</span><span class="n">serial</span><span class="c">)</span>  <span class="c"># "TTC-2026004"</span></code><button class="code-copy" data-copy="py">Copy</button></pre>
+        </article>
+
+        <article class="api-card" id="webhooks">
+          <h3 class="section-title" style="margin-top:0;">Webhooks</h3>
+          <p style="margin:0 0 14px;color:var(--muted);">Subscribe to events and receive signed POSTs to your endpoint. Every payload is HMAC-SHA256 signed with your shared secret.</p>
+          <div id="webhookList"></div>
+
+          <h4 style="margin:24px 0 10px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);">Example payload</h4>
+          <pre class="code-block"><code><span class="n">{</span>
+  <span class="k">"event"</span><span class="c">:</span> <span class="s">"batch.minted"</span><span class="c">,</span>
+  <span class="k">"created"</span><span class="c">:</span> <span class="s">"2026-04-12T09:14:22Z"</span><span class="c">,</span>
+  <span class="k">"data"</span><span class="c">:</span> <span class="n">{</span>
+    <span class="k">"batch"</span><span class="c">:</span> <span class="s">"TT-0xa1b2c3d4"</span><span class="c">,</span>
+    <span class="k">"hash"</span><span class="c">:</span> <span class="s">"0xa1b2c3d4"</span><span class="c">,</span>
+    <span class="k">"block"</span><span class="c">:</span> <span class="s">18402119</span><span class="c">,</span>
+    <span class="k">"certificate"</span><span class="c">:</span> <span class="s">"TTC-2026004"</span>
+  <span class="n">}</span>
+<span class="n">}</span></code><button class="code-copy" data-copy="payload">Copy</button></pre>
+        </article>
+
+        <article class="api-card" id="errors">
+          <h3 class="section-title" style="margin-top:0;">Errors</h3>
+          <table class="ledger-table" style="min-width:0;">
+            <thead><tr><th>Code</th><th>Meaning</th><th>Resolution</th></tr></thead>
+            <tbody>
+              <tr><td><code>401</code></td><td>Missing or invalid bearer token</td><td>Re-issue API key</td></tr>
+              <tr><td><code>403</code></td><td>Insufficient scope for resource</td><td>Add <code>batches:write</code> scope</td></tr>
+              <tr><td><code>409</code></td><td>Batch already minted</td><td>Hashes are immutable; create a new batch</td></tr>
+              <tr><td><code>422</code></td><td>Manifest validation failed</td><td>Inspect <code>error.details[].path</code></td></tr>
+              <tr><td><code>429</code></td><td>Rate limit · 600 req/min</td><td>Backoff using <code>Retry-After</code></td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="api-card" id="sdks">
+          <h3 class="section-title" style="margin-top:0;">SDKs</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+            <div class="method-card"><strong>Node.js</strong><code>npm i @teatrade/trace</code></div>
+            <div class="method-card"><strong>Python</strong><code>pip install teatrade</code></div>
+            <div class="method-card"><strong>Go</strong><code>go get teatrade.dev/trace</code></div>
+            <div class="method-card"><strong>Ruby</strong><code>gem install teatrade</code></div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/api.js" defer></script>
+</body>
+</html>

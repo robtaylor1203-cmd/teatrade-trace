@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificates · TeaTrade Trace</title>
+  <meta name="description" content="On-chain Certificates of Origin · scan, lookup, verify." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="certificates" data-crumb="Certificates">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Tamper-evident · Anchored on-chain</p>
+        <h2 class="page-hero__title">Certificates of Origin</h2>
+        <p class="page-hero__sub">Every cleared batch generates a permanent, machine-verifiable Certificate of Origin. Customers, customs, and auditors verify with a single scan.</p>
+      </div>
+      <div class="page-hero__actions">
+        <button class="btn btn--ghost">Export bundle</button>
+        <button class="btn btn--primary">Mint new cert</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">Issued (YTD)</span><span class="sub-kpi__value" id="kpiIssued">—</span><span class="sub-kpi__delta">All time-stamped</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Total Scans</span><span class="sub-kpi__value" id="kpiScans">—</span><span class="sub-kpi__delta">By customers + auditors</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Avg Verify Time</span><span class="sub-kpi__value">1.4<small>sec</small></span><span class="sub-kpi__delta sub-kpi__delta--good">via public RPC</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Tampered</span><span class="sub-kpi__value">0</span><span class="sub-kpi__delta sub-kpi__delta--good">Cryptographic guarantee</span></div>
+    </div>
+
+    <div class="cert-explorer">
+      <div>
+        <h3 class="section-title">Certificate registry</h3>
+        <div class="cert-grid" id="certGrid"></div>
+      </div>
+
+      <aside class="cert-lookup">
+        <h3 class="section-title" style="margin-top:0;">Quick lookup</h3>
+        <p class="muted-text" style="margin:0 0 12px;">Paste a certificate serial or transaction hash. Try <code style="cursor:pointer;" id="sampleHash">0xa1b2c3d4</code></p>
+        <input class="cert-lookup__input" id="lookupInput" placeholder="Serial or 0x… hash" />
+        <div class="cert-preview" id="certPreview">
+          <p class="muted-text" style="margin:0;text-align:center;">Awaiting lookup…</p>
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/certificates.js" defer></script>
+</body>
+</html>

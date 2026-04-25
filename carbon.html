@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carbon · Scope 3 · TeaTrade Trace</title>
+  <meta name="description" content="GHG-Protocol-aligned Scope 3 carbon ledger for tea importers." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="carbon" data-crumb="Carbon (Scope 3)">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">GHG-Protocol Scope 3 · Verified</p>
+        <h2 class="page-hero__title">Carbon Ledger</h2>
+        <p class="page-hero__sub">Every tonne of CO₂e in your supply chain — sourced from primary data at origin and live carrier telemetry. Categories 1, 4, 9 &amp; 11.</p>
+      </div>
+      <div class="page-hero__actions">
+        <button class="btn btn--ghost">Download CDP report</button>
+        <button class="btn btn--primary">Generate audit pack</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="metric-tile"><span class="sub-kpi__label">Total YTD</span><span class="sub-kpi__value">412<small>tCO₂e</small></span><span class="sub-kpi__delta sub-kpi__delta--good">−18% vs 2025</span></div>
+      <div class="metric-tile"><span class="sub-kpi__label">Intensity</span><span class="sub-kpi__value">0.24<small>tCO₂e / t tea</small></span><span class="sub-kpi__delta sub-kpi__delta--good">Industry avg 0.31</span></div>
+      <div class="metric-tile"><span class="sub-kpi__label">Verified Coverage</span><span class="sub-kpi__value">94<small>%</small></span><span class="sub-kpi__delta">Primary data</span></div>
+      <div class="metric-tile"><span class="sub-kpi__label">Offsets retired</span><span class="sub-kpi__value">76<small>tCO₂e</small></span><span class="sub-kpi__delta">Verra · 2026</span></div>
+    </div>
+
+    <h3 class="section-title">12-month trend
+      <span class="filter-pills" id="rangeFilter">
+        <button class="pill" data-value="3m">3m</button>
+        <button class="pill" data-value="6m">6m</button>
+        <button class="pill pill--active" data-value="12m">12m</button>
+        <button class="pill" data-value="ytd">YTD</button>
+      </span>
+    </h3>
+    <div class="carbon-chart" id="carbonChart"></div>
+    <div class="carbon-legend">
+      <span><span class="carbon-legend__swatch" style="background:#1a73e8;"></span>Actual emissions</span>
+      <span><span class="carbon-legend__swatch" style="background:#5f6368;border-top:2px dashed #5f6368;background:transparent;"></span>2025 baseline</span>
+    </div>
+
+    <h3 class="section-title">Breakdown by category</h3>
+    <article class="bento-card">
+      <ul class="breakdown-list" id="breakdownList"></ul>
+    </article>
+
+    <h3 class="section-title">Top contributors · this month</h3>
+    <article class="bento-card">
+      <table class="ledger-table" style="min-width:0;">
+        <thead>
+          <tr><th>Batch</th><th>Estate</th><th>Sea miles</th><th>Carbon</th><th>Intensity</th></tr>
+        </thead>
+        <tbody id="topContribs"></tbody>
+      </table>
+    </article>
+
+    <h3 class="section-title">Methodology</h3>
+    <article class="methodology">
+      <p style="margin:0;color:var(--muted);">All emissions are calculated using the GHG-Protocol Scope 3 standard, with categories 1 (Purchased Goods), 4 (Upstream Transport), 9 (Downstream Transport) and 11 (Use of Sold Products) in scope. Activity factors are sourced from DEFRA 2025 and IMO MEPC.337(76).</p>
+      <pre class="method-block">co2(batch) = Σ(
+  cultivation     · estate_factor[lat,lng,grade]      // primary data
+  + factory_kWh   · grid_factor[country,year]
+  + inland_road   · DEFRA(HGV, payload, miles)
+  + sea_freight   · IMO_EEDI(vessel, payload, route)
+  + uk_warehouse  · scope2_avg
+)</pre>
+      <p style="margin-top:14px;color:var(--muted);font-size:13px;">All hashes are anchored on-chain at <a href="./api.html" style="color:var(--accent);">block #18,402,119</a>. Independent assurance by EcoCert (ISAE 3000).</p>
+    </article>
+
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/carbon.js" defer></script>
+</body>
+</html>

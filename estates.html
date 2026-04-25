@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estates · TeaTrade Trace</title>
+  <meta name="description" content="The accredited origin estates feeding your supply chain." />
+  <meta name="theme-color" content="#1a73e8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <script src="https://teatrade.co.uk/ticker.js"></script>
+</head>
+<body class="trace-page" data-page="estates" data-crumb="Estates">
+
+  <div id="tt-chrome-top"></div>
+
+  <main class="trace-shell" role="main">
+
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">Origin Network</p>
+        <h2 class="page-hero__title">Estates</h2>
+        <p class="page-hero__sub">Every accredited garden contributing to your blends — with first-party verified certifications, GPS-anchored boundaries, and live yield data.</p>
+      </div>
+      <div class="page-hero__actions">
+        <button class="btn btn--ghost">View on map</button>
+        <button class="btn btn--primary">+ Onboard estate</button>
+      </div>
+    </section>
+
+    <div class="sub-kpis">
+      <div class="sub-kpi"><span class="sub-kpi__label">Active Estates</span><span class="sub-kpi__value" id="kpiEstates">—</span><span class="sub-kpi__delta">Across 6 countries</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Total Hectares</span><span class="sub-kpi__value" id="kpiHa">—</span><span class="sub-kpi__delta">Cultivated land</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Annual Yield</span><span class="sub-kpi__value" id="kpiYield">—</span><span class="sub-kpi__delta">Tons / year</span></div>
+      <div class="sub-kpi"><span class="sub-kpi__label">Certified Organic</span><span class="sub-kpi__value" id="kpiOrganic">—</span><span class="sub-kpi__delta sub-kpi__delta--good">Of estate base</span></div>
+    </div>
+
+    <h3 class="section-title">Origin map</h3>
+    <div id="estateMap" style="margin-bottom: 32px;"></div>
+
+    <div class="shipments-toolbar">
+      <div class="search-input">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" id="estFilter" placeholder="Search by name, country, region…" />
+      </div>
+      <div class="filter-pills" id="countryFilter" role="tablist">
+        <button class="pill pill--active" data-value="all">All</button>
+        <button class="pill" data-value="India">India</button>
+        <button class="pill" data-value="Sri Lanka">Sri Lanka</button>
+        <button class="pill" data-value="Kenya">Kenya</button>
+        <button class="pill" data-value="China">China</button>
+        <button class="pill" data-value="Japan">Japan</button>
+        <button class="pill" data-value="Malawi">Malawi</button>
+        <button class="pill" data-value="South Korea">Korea</button>
+      </div>
+    </div>
+
+    <div class="estate-grid" id="estateGrid"></div>
+  </main>
+
+  <div id="tt-chrome-bottom"></div>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/chrome.js"></script>
+  <script src="./js/map.js"></script>
+  <script src="./js/estates.js" defer></script>
+</body>
+</html>
