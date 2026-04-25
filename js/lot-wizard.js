@@ -302,7 +302,18 @@
     /* ---- paint mint state ---- */
     var allEvents = L.events(lot.id);
     var headEvt = allEvents[allEvents.length - 1];
-    var publicUrl = 'https://trace.teatrade.co.uk/lot/' + lot.id;
+    /* Tea Passport URL — Cloudflare Pages rewrites /passport/<id> to
+       /passport.html?id=<id>. Same URL goes into the QR code. */
+    var publicUrl = 'https://trace.teatrade.co.uk/passport/' + lot.id;
+
+    /* Persist the qr_url back to the lot row (best-effort) so future
+       loads + the certificates audit log can reference it. */
+    if (window.TTSupabase && TTSupabase.session && TTSupabase.client) {
+      TTSupabase.client.from('trace_lots')
+        .update({ qr_url: publicUrl })
+        .eq('id', lot.id)
+        .then(function (r) { if (r.error) console.warn('[lot-wizard] qr_url persist:', r.error.message); });
+    }
 
     showStep(5);
     document.getElementById('lwLotId').textContent  = lot.id;
