@@ -62,7 +62,7 @@
     '<header class="site-header" role="banner">' +
       '<div class="header-top-bar">' +
         '<a href="./index.html" class="header-logo" aria-label="TeaTrade Trace home">' +
-          '<h1 class="tt-wordmark">Tea<span class="tt-wordmark__trade">Trade</span><span class="tt-wordmark__trace">Trace</span></h1>' +
+          '<h1 class="tt-wordmark">Tea<span class="tt-wordmark__trade">Trade</span><span class="tt-wordmark__trace">TRACE</span></h1>' +
         '</a>' +
         '<div class="header-search-wrapper">' +
           '<input type="text" class="header-search-bar" id="omniTrigger" placeholder="Search estates, batches, shipments — or ask anything…" readonly aria-label="Open AI search" />' +

@@ -89,7 +89,20 @@ body.trace-page {
   white-space: nowrap;
 }
 .tt-wordmark__trade { color: var(--text); font-weight: 700; }
-.tt-wordmark__trace { color: var(--accent); font-weight: 700; }
+.tt-wordmark__trace {
+  display: inline-flex; align-items: center;
+  margin-left: 10px;
+  padding: 3px 10px;
+  background: rgba(26,115,232,.10);
+  color: var(--accent);
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  border-radius: 999px;
+  vertical-align: middle;
+  position: relative;
+  top: -3px;
+}
 
 /* Search bar — dimensions MUST match omni-modal collapsed state */
 .header-search-wrapper {
@@ -2345,7 +2358,7 @@ body.audit-page {
 .audit-shell { max-width: 960px; margin: 0 auto; padding: 36px 24px 80px; }
 
 .audit-cover {
-  background: linear-gradient(135deg, var(--accent) 0%, #6b3ed8 100%);
+  background: var(--accent);
   color: #fff;
   border-radius: 18px; padding: 40px 36px;
   margin-bottom: 24px;
