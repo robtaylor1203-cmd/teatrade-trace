@@ -26,7 +26,7 @@
       </div>
       <div class="page-hero__actions">
         <a class="btn btn--ghost" href="./warehouse.html">From warehouse</a>
-        <button class="btn btn--primary" id="openBlendBtn">+ Open blend</button>
+        <button class="btn btn--primary" id="openBlendBtn">+ New batch</button>
       </div>
     </section>
 
@@ -41,12 +41,69 @@
     <div class="estate-grid" id="blendGrid"></div>
   </main>
 
+  <!-- Blend mint modal -->
+  <div class="qr-modal" id="blendModal" aria-hidden="true">
+    <div class="qr-modal__backdrop" data-close="1"></div>
+    <div class="qr-modal__panel" role="dialog" aria-modal="true" aria-labelledby="blendModalTitle">
+      <button class="qr-modal__close" type="button" data-close="1" aria-label="Close">×</button>
+      <h3 class="qr-modal__title" id="blendModalTitle">Mint a new blend</h3>
+      <p class="qr-modal__sub">A real lot will be written to your TTLedger chain — origin, manufacture, bulk-pack and minted events all signed and anchored.</p>
+      <form class="tt-form" id="blendForm" novalidate>
+        <div class="tt-form__row">
+          <label for="blendName">Blend name</label>
+          <input type="text" id="blendName" required placeholder="Highgrove Breakfast" maxlength="80" />
+        </div>
+        <div class="tt-form__row--split">
+          <div class="tt-form__row">
+            <label for="blendSku">SKU</label>
+            <input type="text" id="blendSku" required placeholder="HBR-250G" maxlength="40" />
+          </div>
+          <div class="tt-form__row">
+            <label for="blendWeight">Weight (t)</label>
+            <input type="number" id="blendWeight" required min="0.1" step="0.1" placeholder="2.4" />
+          </div>
+        </div>
+        <div class="tt-form__row--split">
+          <div class="tt-form__row">
+            <label for="blendFormat">Consumer format</label>
+            <select id="blendFormat">
+              <option>Carton</option>
+              <option>Tin</option>
+              <option>Pouch</option>
+              <option>Loose pack</option>
+            </select>
+          </div>
+          <div class="tt-form__row">
+            <label for="blendMaterial">Material</label>
+            <select id="blendMaterial">
+              <option>Recycled card</option>
+              <option>Aluminium</option>
+              <option>PE-laminate</option>
+              <option>Compostable kraft</option>
+            </select>
+          </div>
+        </div>
+        <div class="tt-form__row">
+          <label for="blendParents">Source lots</label>
+          <textarea id="blendParents" placeholder="LOT-ABC-241115-XXXX, LOT-DEF-241120-YYYY"></textarea>
+          <p class="tt-form__hint">Comma-separated lot IDs from warehouse stock. Their head hashes become the blend's parent set.</p>
+        </div>
+        <p class="tt-form__error" id="blendError" hidden></p>
+        <div class="qr-modal__actions">
+          <button type="button" class="btn btn--ghost" data-close="1">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="blendSubmit">Mint blend</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="tt-chrome-bottom"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="./js/supabase-client.js"></script>
   <script src="./js/data.js"></script>
   <script src="./js/chrome.js"></script>
+  <script src="./js/ledger.js" defer></script>
   <script src="./js/passport-qr.js" defer></script>
   <script src="./js/production.js" defer></script>
 </body>

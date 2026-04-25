@@ -41,12 +41,70 @@
     <div class="estate-grid" id="orderGrid"></div>
   </main>
 
+  <!-- Outbound order modal -->
+  <div class="qr-modal" id="orderModal" aria-hidden="true">
+    <div class="qr-modal__backdrop" data-close="1"></div>
+    <div class="qr-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+      <button class="qr-modal__close" type="button" data-close="1" aria-label="Close">×</button>
+      <h3 class="qr-modal__title" id="orderModalTitle">Mint an outbound order</h3>
+      <p class="qr-modal__sub">Mints a blend-passport lot — origin references the parent blend's head hash, then outbound, dispatched and minted events sign the chain.</p>
+      <form class="tt-form" id="orderForm" novalidate>
+        <div class="tt-form__row">
+          <label for="orderRetailer">Retailer</label>
+          <input type="text" id="orderRetailer" required placeholder="Selfridges" maxlength="80" />
+        </div>
+        <div class="tt-form__row">
+          <label for="orderParent">Source blend lot</label>
+          <select id="orderParent" required>
+            <option value="">— Select a finished blend —</option>
+          </select>
+          <p class="tt-form__hint">Pulled from your TTLedger BLEND lots. Mint a blend on the Production page first if this list is empty.</p>
+        </div>
+        <div class="tt-form__row--split">
+          <div class="tt-form__row">
+            <label for="orderSku">SKU</label>
+            <input type="text" id="orderSku" required placeholder="HBR-250G" maxlength="40" />
+          </div>
+          <div class="tt-form__row">
+            <label for="orderCases">Cases</label>
+            <input type="number" id="orderCases" required min="1" step="1" placeholder="120" />
+          </div>
+        </div>
+        <div class="tt-form__row--split">
+          <div class="tt-form__row">
+            <label for="orderChannel">Channel</label>
+            <select id="orderChannel">
+              <option>Grocery</option>
+              <option>Specialty</option>
+              <option>Online</option>
+              <option>HoReCa</option>
+            </select>
+          </div>
+          <div class="tt-form__row">
+            <label for="orderDc">DC</label>
+            <input type="text" id="orderDc" value="Felixstowe DC" maxlength="40" />
+          </div>
+        </div>
+        <div class="tt-form__row">
+          <label for="orderCarrier">Carrier</label>
+          <input type="text" id="orderCarrier" placeholder="DPD Same-day" maxlength="40" />
+        </div>
+        <p class="tt-form__error" id="orderError" hidden></p>
+        <div class="qr-modal__actions">
+          <button type="button" class="btn btn--ghost" data-close="1">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="orderSubmit">Mint passport</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="tt-chrome-bottom"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="./js/supabase-client.js"></script>
   <script src="./js/data.js"></script>
   <script src="./js/chrome.js"></script>
+  <script src="./js/ledger.js" defer></script>
   <script src="./js/passport-qr.js" defer></script>
   <script src="./js/retail.js" defer></script>
 </body>
