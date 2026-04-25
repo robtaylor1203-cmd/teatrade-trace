@@ -81,17 +81,25 @@
     truck:   svgIcon('<path d="M1 7h13v10H1zM14 10h4l3 4v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'),
     customs: svgIcon('<path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/><path d="M9 12l2 2 4-4"/>'),
     cup:     svgIcon('<path d="M3 8h13v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M16 9h2a3 3 0 0 1 0 6h-2"/><path d="M7 4c1 1 0 2 1 3M11 3c1 1 0 2 1 3"/>'),
-    ban:     svgIcon('<circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/>')
+    ban:     svgIcon('<circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/>'),
+    blend:   svgIcon('<path d="M5 4h14l-5 8v6l-4 2v-8z"/><path d="M8 4c1 2 3 2 4 0M12 4c1 2 3 2 4 0"/>'),
+    teabag:  svgIcon('<path d="M9 3h6v3l3 4v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9l3-4z"/><path d="M9 13h6M9 17h6"/>'),
+    dc:      svgIcon('<path d="M3 21V9l9-5 9 5v12z"/><path d="M9 21v-7h6v7"/><path d="M3 13h18"/>'),
+    shelf:   svgIcon('<path d="M3 4h18v16H3z"/><path d="M3 10h18M3 16h18"/><path d="M7 6v2M11 6v2M16 12v2M8 18v-2"/>')
   };
   var STAGE_LABELS = {
     'origin':       { icon: ICONS.leaf,    phase: 'estate', phaseLabel: 'Estate',     title: 'Plucked at the estate',     blurb: 'Two leaves and a bud, hand-picked at origin.' },
     'manufacture':  { icon: ICONS.factory, phase: 'prod',   phaseLabel: 'Production', title: 'Crafted at the factory',    blurb: 'Withered, rolled, oxidised, and fired into character.' },
     'bulk-pack':    { icon: ICONS.package, phase: 'prod',   phaseLabel: 'Warehouse',  title: 'Bulk-packed for shipping',  blurb: 'Sealed for the long voyage in food-safe packaging.' },
     'outbound':     { icon: ICONS.ship,    phase: 'ship',   phaseLabel: 'Shipping',   title: 'Loaded onto the vessel',    blurb: 'Cleared for export and on its way.' },
-    'minted':       { icon: ICONS.chain,   phase: 'prod',   phaseLabel: 'Production', title: 'Tea Passport issued',       blurb: 'Lot fingerprinted and added to the TeaTrade chain.' },
-    'dispatched':   { icon: ICONS.truck,   phase: 'retail', phaseLabel: 'Retail',     title: 'Dispatched to buyer',       blurb: 'Released from the warehouse to its destination.' },
     'customs':      { icon: ICONS.customs, phase: 'ship',   phaseLabel: 'Shipping',   title: 'Cleared customs',           blurb: 'Inspected and approved for entry.' },
-    'delivered':    { icon: ICONS.cup,     phase: 'retail', phaseLabel: 'Retail',     title: 'Delivered',                  blurb: 'Arrived ready to brew.' },
+    'blend':        { icon: ICONS.blend,   phase: 'prod',   phaseLabel: 'Production', title: 'Blended to recipe',         blurb: 'Combined with sister lots into the signature blend.' },
+    'consumer-pack':{ icon: ICONS.teabag,  phase: 'prod',   phaseLabel: 'Production', title: 'Packed for the shelf',      blurb: 'Filled into teabags, caddies or cartons \u2014 the retail SKU is born.' },
+    'minted':       { icon: ICONS.chain,   phase: 'prod',   phaseLabel: 'Production', title: 'Tea Passport issued',       blurb: 'Consumer pack fingerprinted and added to the TeaTrade chain.' },
+    'dispatched':   { icon: ICONS.truck,   phase: 'retail', phaseLabel: 'Retail',     title: 'Dispatched to retailer',    blurb: 'Released from the warehouse to the retailer.' },
+    'retail-inbound':{ icon: ICONS.dc,     phase: 'retail', phaseLabel: 'Retail',     title: 'Received at retail DC',     blurb: 'Booked in at the retailer\u2019s distribution centre.' },
+    'on-shelf':     { icon: ICONS.shelf,   phase: 'retail', phaseLabel: 'Retail',     title: 'On shelf',                  blurb: 'Scanned onto the shop floor, ready for sale.' },
+    'delivered':    { icon: ICONS.cup,     phase: 'retail', phaseLabel: 'Retail',     title: 'Sold to the consumer',      blurb: 'Final scan at point of sale \u2014 journey complete.' },
     'void':         { icon: ICONS.ban,     phase: 'estate', phaseLabel: 'Voided',     title: 'Lot voided',                 blurb: 'This lot was withdrawn from circulation.' }
   };
 
@@ -263,12 +271,16 @@
       { type:'bulk-pack',   ts: plus(2,2), payload:{ format:'Foil-lined paper sack', material:'Recycled kraft + foil', weight: 2.4, sacks:48 } },
       { type:'outbound',    ts: plus(4,0), payload:{ port:'Kolkata', vessel:'MV Northern Star', eta:'2026-05-21', msku:'TGHU-204461-7', sealNo:'SL-09245' } },
       { type:'customs',     ts: plus(36,0), payload:{ port:'Felixstowe', clearance:'GVMS-9F2C', duty:'£0 · CPT origin' } },
-      { type:'dispatched',  ts: plus(37,3), payload:{ carrier:'TeaTrade Logistics', destination:'Selfridges DC', tracking:'TT-260522-A19F', cases: 240 } },
-      { type:'minted',      ts: plus(37,4), payload:{ sku:'GLN-FTGFOP1-250G', defraVersion:'2025 · v3', footprintTransport: 0.42, footprintPackaging: 0.07, footprintTotal: 0.49, seaKm: 12480,
+      { type:'blend',       ts: plus(38,0), payload:{ recipe:'House Darjeeling First Flush', blender:'Northern Tea Co. · Sheffield', componentLots:3, batchKg:1850, recipeRef:'HDF-2026-04' } },
+      { type:'consumer-pack', ts: plus(38,6), payload:{ sku:'GLN-FTGFOP1-250G', format:'Caddy · loose leaf', packSize:'250 g', line:'Line 2 · Sheffield', unitsProduced: 7400, bestBefore:'2028-04' } },
+      { type:'minted',      ts: plus(38,7), payload:{ sku:'GLN-FTGFOP1-250G', defraVersion:'2025 · v3', footprintTransport: 0.42, footprintPackaging: 0.07, footprintTotal: 0.49, seaKm: 12480,
         certifications: [
           { code:'bsi',       id:'BSI-AA-2026-3349' },
           { code:'iso-22000', id:'FSMS-260118' }
-        ] } }
+        ] } },
+      { type:'dispatched',  ts: plus(39,3), payload:{ carrier:'TeaTrade Logistics', destination:'Selfridges DC · Park Royal', tracking:'TT-260522-A19F', cases: 240 } },
+      { type:'retail-inbound', ts: plus(40,2), payload:{ retailer:'Selfridges', site:'Park Royal RDC', cases:240, grn:'GRN-260524-7711' } },
+      { type:'on-shelf',    ts: plus(41,5), payload:{ retailer:'Selfridges', store:'London · Oxford Street', aisle:'Food Hall · Tea & Coffee', scannedBy:'Associate #4421' } }
     ];
     var prev = ZERO;
     var events = [];
@@ -418,10 +430,31 @@
       row('Vessel', p.vessel);
       row('ETA',    p.eta);
       row('Container', p.msku);
+    } else if (type === 'blend') {
+      row('Recipe',      p.recipe);
+      row('Blender',     p.blender);
+      if (p.componentLots) row('Components', p.componentLots + ' lots');
+      if (p.batchKg)     row('Batch size',  p.batchKg + ' kg');
+    } else if (type === 'consumer-pack') {
+      row('SKU',         p.sku);
+      row('Format',      p.formatLabel || p.format);
+      row('Pack size',   p.packSize);
+      row('Line',        p.line);
+      if (p.unitsProduced) row('Units', Number(p.unitsProduced).toLocaleString());
     } else if (type === 'dispatched') {
       row('Carrier',     p.carrier);
       row('To',          p.destination);
       row('Tracking',    p.tracking);
+    } else if (type === 'retail-inbound') {
+      row('Retailer',    p.retailer);
+      row('Site',        p.site);
+      if (p.cases)       row('Cases',     p.cases);
+      row('GRN',         p.grn);
+    } else if (type === 'on-shelf') {
+      row('Retailer',    p.retailer);
+      row('Store',       p.store);
+      row('Aisle',       p.aisle);
+      row('Scanned by',  p.scannedBy);
     } else if (type === 'minted') {
       if (p.footprintTotal != null) row('Footprint', p.footprintTotal + ' tCO₂e');
       row('DEFRA factors', p.defraVersion);
